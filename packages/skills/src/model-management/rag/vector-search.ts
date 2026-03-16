@@ -12,7 +12,7 @@ export class VectorSearch {
     query: string,
     collectionIds: string[],
     topK: number = 5,
-    scoreThreshold: number = 0.7,
+    scoreThreshold: number = 0.3,
   ): Promise<RAGSearchResult[]> {
     const queryEmbedding = await this.embedder.embed(query);
 
@@ -26,13 +26,16 @@ export class VectorSearch {
       .toArray();
 
     const scored = chunks
-      .map(chunk => ({
-        content: chunk.content,
-        documentId: chunk.documentId,
-        collectionId: chunk.collectionId,
-        chunkIndex: chunk.index,
-        score: cosineSimilarity(queryEmbedding, chunk.embedding),
-      }))
+      .map(chunk => {
+        const score = cosineSimilarity(queryEmbedding, chunk.embedding);
+        return {
+          content: chunk.content,
+          documentId: chunk.documentId,
+          collectionId: chunk.collectionId,
+          chunkIndex: chunk.index,
+          score,
+        };
+      })
       .filter(r => r.score >= scoreThreshold)
       .sort((a, b) => b.score - a.score)
       .slice(0, topK);

@@ -107,6 +107,7 @@ interface ChatState {
   sessionId: string;
   isLoading: boolean;
   addMessage: (msg: ChatMessage) => void;
+  updateMessage: (id: string, content: string) => void;
   setLoading: (v: boolean) => void;
   clearMessages: () => void;
   setSessionId: (id: string) => void;
@@ -117,6 +118,9 @@ export const useChatStore = create<ChatState>((set) => ({
   sessionId: uuid(),
   isLoading: false,
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
+  updateMessage: (id, content) => set((s) => ({
+    messages: s.messages.map(m => m.id === id ? { ...m, content } : m),
+  })),
   setLoading: (isLoading) => set({ isLoading }),
   clearMessages: () => set({ messages: [], sessionId: uuid() }),
   setSessionId: (sessionId) => set({ sessionId }),
@@ -124,7 +128,7 @@ export const useChatStore = create<ChatState>((set) => ({
 
 // ─── App Store ──────────────────────────────────────────────
 
-type AppView = 'chat' | 'workflows' | 'skills' | 'settings' | 'health-dashboard';
+type AppView = 'chat' | 'knowledge' | 'workflows' | 'skills' | 'resources' | 'settings' | 'health-dashboard';
 
 interface AppState {
   currentView: AppView;

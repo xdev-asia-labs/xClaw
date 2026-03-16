@@ -81,7 +81,7 @@ export class Gateway {
 
   async start(): Promise<void> {
     const app = express();
-    app.use(cors({ origin: this.config.corsOrigins }));
+    app.use(cors({ origin: this.config.corsOrigins.concat('*') }));
     app.use(express.json({ limit: '10mb' }));
 
     // ── Auth middleware helper ─────────────────────────────
@@ -192,6 +192,73 @@ export class Gateway {
       }
     });
 
+    // Streaming chat endpoint (SSE) - real-time token-by-token response
+    app.post('/api/chat/stream', requireAuth, async (req, res) => {
+      const { conversationId, message, webSearch } = req.body;
+      if (!message) { res.status(400).json({ error: 'message is required' }); return; }
+      if (!conversationId) { res.status(400).json({ error: 'conversationId is required' }); return; }
+
+      // Set SSE headers
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      });
+
+      try {
+        // If web search is enabled, search first and prepend context
+        let enrichedMessage = message;
+        if (webSearch) {
+          try {
+            res.write(`data: ${JSON.stringify({ type: 'status', content: 'Searching the web...' })}\n\n`);
+            const { text: searchText, sources } = await this.performWebSearch(message);
+            if (searchText) {
+              enrichedMessage = `[Web Search Results]\n${searchText}\n\n[User Question]\n${message}`;
+              res.write(`data: ${JSON.stringify({ type: 'search_done', sources })}\n\n`);
+            }
+          } catch {
+            res.write(`data: ${JSON.stringify({ type: 'status', content: 'Web search failed, answering without it.' })}\n\n`);
+          }
+        }
+
+        await this.auth.saveMessage(conversationId, 'user', message);
+        await this.auth.autoTitle(conversationId, message);
+
+        const start = Date.now();
+        let fullContent = '';
+
+        for await (const chunk of this.agent.chatStream(conversationId, enrichedMessage)) {
+          if (chunk.type === 'delta') {
+            fullContent += chunk.content;
+            res.write(`data: ${JSON.stringify({ type: 'delta', content: chunk.content })}\n\n`);
+          } else if (chunk.type === 'tool') {
+            res.write(`data: ${JSON.stringify({ type: 'tool', content: chunk.content })}\n\n`);
+          } else if (chunk.type === 'done') {
+            const latencyMs = Date.now() - start;
+            await this.auth.saveMessage(conversationId, 'assistant', fullContent, { latencyMs });
+            res.write(`data: ${JSON.stringify({ type: 'done', content: '' })}\n\n`);
+          }
+        }
+      } catch (err) {
+        res.write(`data: ${JSON.stringify({ type: 'error', content: err instanceof Error ? err.message : 'Unknown error' })}\n\n`);
+      } finally {
+        res.end();
+      }
+    });
+
+    // Web search endpoint
+    app.post('/api/web-search', requireAuth, async (req, res) => {
+      const { query } = req.body;
+      if (!query) { res.status(400).json({ error: 'query is required' }); return; }
+      try {
+        const results = await this.performWebSearch(query);
+        res.json({ results });
+      } catch (err) {
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Search failed' });
+      }
+    });
+
     // Health & info endpoint
     app.get('/api/health', (_req, res) => {
       res.json({
@@ -205,6 +272,13 @@ export class Gateway {
 
     // REST convenience endpoints (delegate to WS internally)
     this.registerRestRoutes(app);
+
+    // ── Serve static web frontend (production) ────────────
+    const webDistPath = new URL('../../web/dist', import.meta.url).pathname;
+    app.use(express.static(webDistPath));
+    app.get('/{*path}', (_req, res) => {
+      res.sendFile('index.html', { root: webDistPath });
+    });
 
     this.server = http.createServer(app);
     this.wss = new WebSocketServer({ server: this.server, path: '/ws' });
@@ -226,6 +300,47 @@ export class Gateway {
         resolve();
       });
     });
+  }
+
+  // ─── Web Search ──────────────────────────────────────────
+
+  private async performWebSearch(query: string): Promise<{ text: string; sources: { title: string; snippet: string; url: string }[] }> {
+    const encoded = encodeURIComponent(query);
+    const url = `https://html.duckduckgo.com/html/?q=${encoded}`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+    if (!res.ok) throw new Error(`Search HTTP ${res.status}`);
+    const html = await res.text();
+
+    // Extract search results from DuckDuckGo HTML
+    const results: { title: string; snippet: string; url: string }[] = [];
+    const resultRegex = /<a[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+    let match;
+    while ((match = resultRegex.exec(html)) !== null && results.length < 5) {
+      const rawUrl = match[1];
+      const title = match[2].replace(/<[^>]+>/g, '').trim();
+      const snippet = match[3].replace(/<[^>]+>/g, '').trim();
+      const actualUrl = rawUrl.includes('uddg=') ? decodeURIComponent(rawUrl.split('uddg=')[1]?.split('&')[0] || rawUrl) : rawUrl;
+      if (title && snippet) {
+        results.push({ title, snippet, url: actualUrl });
+      }
+    }
+
+    // Fallback: simpler extraction if the above didn't work
+    if (results.length === 0) {
+      const snippetRegex = /<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+      while ((match = snippetRegex.exec(html)) !== null && results.length < 5) {
+        const snippet = match[1].replace(/<[^>]+>/g, '').trim();
+        if (snippet) results.push({ title: `Result ${results.length + 1}`, snippet, url: '' });
+      }
+    }
+
+    if (results.length === 0) return { text: '', sources: [] };
+    const text = results.map((r, i) => `[${i + 1}] ${r.title}\n${r.snippet}${r.url ? `\nSource: ${r.url}` : ''}`).join('\n\n');
+    return { text, sources: results };
   }
 
   async stop(): Promise<void> {
@@ -615,6 +730,7 @@ export class Gateway {
       } catch (err) { res.status(500).json({ error: String(err) }); }
     });
 
+    // ── Knowledge Base (RAG) endpoints ────────────────────
     app.get('/api/kb/collections', async (_req, res) => {
       try {
         const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_list_collections', arguments: {} });
@@ -625,6 +741,38 @@ export class Gateway {
     app.post('/api/kb/collections', async (req, res) => {
       try {
         const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_create_collection', arguments: req.body as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.delete('/api/kb/collections/:id', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_delete_collection', arguments: { collection_id: req.params.id } });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.get('/api/kb/collections/:id/documents', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_list_documents', arguments: { collection_id: req.params.id } });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/kb/collections/:id/documents', async (req, res) => {
+      try {
+        const args = { ...req.body, collection_id: req.params.id };
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_add_document', arguments: args as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.delete('/api/kb/collections/:collectionId/documents/:docId', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({
+          id: 'rest', name: 'kb_delete_document',
+          arguments: { collection_id: req.params.collectionId, document_id: req.params.docId },
+        });
         res.json(parseToolResult(result));
       } catch (err) { res.status(500).json({ error: String(err) }); }
     });
@@ -640,6 +788,39 @@ export class Gateway {
       try {
         const result = await this.agent.tools.execute({ id: 'rest', name: 'provider_health_check', arguments: {} });
         res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    // ── Resource Dashboard endpoints ───────────────────────
+    app.get('/api/resources/overview', async (_req, res) => {
+      try {
+        const [modelsResult, kbResult, healthResult] = await Promise.allSettled([
+          this.agent.tools.execute({ id: 'rest', name: 'model_list', arguments: {} }),
+          this.agent.tools.execute({ id: 'rest', name: 'kb_list_collections', arguments: {} }),
+          this.agent.tools.execute({ id: 'rest', name: 'provider_health_check', arguments: {} }),
+        ]);
+
+        const models = modelsResult.status === 'fulfilled' ? parseToolResult(modelsResult.value) : { models: [] };
+        const kb = kbResult.status === 'fulfilled' ? parseToolResult(kbResult.value) : { total: 0, collections: [] };
+        const health = healthResult.status === 'fulfilled' ? parseToolResult(healthResult.value) : {};
+
+        const tools = this.agent.tools.getAllDefinitions();
+        const activeSkills = this.agent.skills.listActive();
+
+        res.json({
+          models: models.models ?? [],
+          knowledgeBase: {
+            totalCollections: kb.total ?? kb.collections?.length ?? 0,
+            collections: kb.collections ?? [],
+          },
+          health,
+          tools: { total: tools.length },
+          skills: { total: activeSkills.length, active: activeSkills.map((s: { name: string }) => s.name) },
+          gateway: {
+            sessions: this.sessions.count,
+            uptime: process.uptime(),
+          },
+        });
       } catch (err) { res.status(500).json({ error: String(err) }); }
     });
   }

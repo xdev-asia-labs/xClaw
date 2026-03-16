@@ -17,6 +17,8 @@ services:
       MONGO_CONNECTION_STRING: mongodb://mongodb:27017/autox
       GATEWAY_PORT: "18789"
       GATEWAY_HOST: "0.0.0.0"
+      OLLAMA_BASE_URL: "http://10.86.156.58:11434"
+      LLM_MODEL: "llama3.1:8b"
     volumes:
       - autox-data:/app/data
     restart: unless-stopped

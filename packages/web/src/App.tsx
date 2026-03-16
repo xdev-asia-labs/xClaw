@@ -10,16 +10,21 @@ import { ChatPanel } from './components/chat/ChatPanel';
 import { WorkflowCanvas } from './components/workflow/WorkflowCanvas';
 import { HealthDashboard } from './components/dashboard/HealthDashboard';
 import { SkillsPanel } from './components/skills/SkillsPanel';
+import { KnowledgeBase } from './components/knowledge/KnowledgeBase';
+import { ResourcesDashboard } from './components/resources/ResourcesDashboard';
 import { Settings } from './components/settings/Settings';
 import {
     MessageSquare, Workflow, HeartPulse, Puzzle,
+    Database, BarChart3,
     Settings as SettingsIcon, Menu, Zap, LogOut,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
     { id: 'chat' as const, label: 'Chat', icon: MessageSquare },
+    { id: 'knowledge' as const, label: 'Knowledge', icon: Database },
     { id: 'workflows' as const, label: 'Workflows', icon: Workflow },
     { id: 'skills' as const, label: 'Skills', icon: Puzzle },
+    { id: 'resources' as const, label: 'Resources', icon: BarChart3 },
     { id: 'health-dashboard' as const, label: 'Health', icon: HeartPulse },
     { id: 'settings' as const, label: 'Settings', icon: SettingsIcon },
 ];
@@ -117,8 +122,10 @@ function App() {
             {/* Main Content */}
             <main className="flex-1 flex flex-col overflow-hidden">
                 {currentView === 'chat' && <ChatPanel />}
+                {currentView === 'knowledge' && <KnowledgeBase />}
                 {currentView === 'workflows' && <WorkflowCanvas />}
                 {currentView === 'skills' && <SkillsPanel />}
+                {currentView === 'resources' && <ResourcesDashboard />}
                 {currentView === 'health-dashboard' && <HealthDashboard />}
                 {currentView === 'settings' && <Settings />}
             </main>

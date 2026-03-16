@@ -51,7 +51,7 @@ export class KnowledgeService {
       embeddingProvider: 'ollama',
       embeddingDimensions: this.embedder.embeddingDimensions,
       searchTopK: 5,
-      scoreThreshold: 0.7,
+      scoreThreshold: 0.3,
       autoInject: true,
     });
 

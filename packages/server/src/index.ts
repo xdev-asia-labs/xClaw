@@ -26,6 +26,7 @@ const agentConfig: AgentConfig = {
     provider: (process.env.LLM_PROVIDER as 'openai' | 'anthropic' | 'ollama') ?? 'openai',
     model: process.env.LLM_MODEL ?? 'gpt-4o',
     apiKey: process.env.LLM_API_KEY ?? '',
+    baseUrl: process.env.LLM_BASE_URL || (process.env.LLM_PROVIDER === 'ollama' && process.env.OLLAMA_BASE_URL ? process.env.OLLAMA_BASE_URL + '/v1' : undefined),
     temperature: 0.7,
     maxTokens: 4096,
   },

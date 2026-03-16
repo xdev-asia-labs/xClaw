@@ -23,7 +23,7 @@ export class RAGService {
     // Use first collection's config for defaults, or use defaults
     const config = await this.ragRepo.getConfig(targetCollections[0]);
     const effectiveTopK = topK ?? config?.searchTopK ?? 5;
-    const threshold = config?.scoreThreshold ?? 0.7;
+    const threshold = config?.scoreThreshold ?? 0.3;
 
     const embedStart = Date.now();
     const results = await this.vectorSearch.search(query, targetCollections, effectiveTopK, threshold);

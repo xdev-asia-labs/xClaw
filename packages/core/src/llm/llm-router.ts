@@ -2,10 +2,11 @@
 // LLM Router - Abstract layer to call any LLM provider
 // ============================================================
 
-import type { LLMConfig, LLMMessage, LLMResponse, ToolDefinition } from '@autox/shared';
+import type { LLMConfig, LLMMessage, LLMResponse, ToolDefinition, ToolCall } from '@autox/shared';
 
 export interface LLMAdapter {
   chat(messages: LLMMessage[], tools?: ToolDefinition[]): Promise<LLMResponse>;
+  chatStream?(messages: LLMMessage[], tools?: ToolDefinition[]): AsyncGenerator<{ type: 'delta' | 'done'; content: string; toolCalls?: ToolCall[]; finishReason?: string }>;
   embed?(text: string): Promise<number[]>;
 }
 
@@ -60,6 +61,110 @@ export class OpenAIAdapter implements LLMAdapter {
 
     const data = await res.json() as Record<string, unknown>;
     return this.parseResponse(data);
+  }
+
+  async *chatStream(messages: LLMMessage[], tools?: ToolDefinition[]): AsyncGenerator<{ type: 'delta' | 'done'; content: string; toolCalls?: ToolCall[]; finishReason?: string }> {
+    const baseUrl = this.config.baseUrl ?? 'https://api.openai.com/v1';
+    const body: Record<string, unknown> = {
+      model: this.config.model,
+      messages: messages.map(m => this.formatMessage(m)),
+      temperature: this.config.temperature ?? 0.7,
+      max_tokens: this.config.maxTokens ?? 4096,
+      stream: true,
+    };
+
+    if (tools?.length) {
+      body.tools = tools.map(t => ({
+        type: 'function',
+        function: {
+          name: t.name,
+          description: t.description,
+          parameters: {
+            type: 'object',
+            properties: Object.fromEntries(
+              t.parameters.map(p => [p.name, {
+                type: p.type,
+                description: p.description,
+                enum: p.enum,
+              }])
+            ),
+            required: t.parameters.filter(p => p.required).map(p => p.name),
+          },
+        },
+      }));
+    }
+
+    const res = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.config.apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`LLM API error ${res.status}: ${errText}`);
+    }
+
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const toolCallAccum: Map<number, { id: string; name: string; args: string }> = new Map();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data: ')) continue;
+        const data = trimmed.slice(6);
+        if (data === '[DONE]') {
+          // Yield accumulated tool calls if any
+          if (toolCallAccum.size > 0) {
+            const tcs: ToolCall[] = [...toolCallAccum.values()].map(tc => ({
+              id: tc.id,
+              name: tc.name,
+              arguments: JSON.parse(tc.args || '{}'),
+            }));
+            yield { type: 'done', content: '', toolCalls: tcs, finishReason: 'tool_calls' };
+          } else {
+            yield { type: 'done', content: '', finishReason: 'stop' };
+          }
+          return;
+        }
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed.choices?.[0]?.delta;
+          if (!delta) continue;
+
+          // Accumulate tool calls
+          if (delta.tool_calls) {
+            for (const tc of delta.tool_calls) {
+              const idx = tc.index ?? 0;
+              if (!toolCallAccum.has(idx)) {
+                toolCallAccum.set(idx, { id: tc.id ?? '', name: tc.function?.name ?? '', args: '' });
+              }
+              const acc = toolCallAccum.get(idx)!;
+              if (tc.id) acc.id = tc.id;
+              if (tc.function?.name) acc.name = tc.function.name;
+              if (tc.function?.arguments) acc.args += tc.function.arguments;
+            }
+          }
+
+          // Yield text delta
+          if (delta.content) {
+            yield { type: 'delta', content: delta.content };
+          }
+        } catch { /* skip malformed SSE lines */ }
+      }
+    }
   }
 
   async embed(text: string): Promise<number[]> {

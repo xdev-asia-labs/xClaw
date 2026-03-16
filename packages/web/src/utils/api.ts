@@ -27,6 +27,27 @@ export const api = {
       body: JSON.stringify({ conversationId, message }),
     }),
 
+  // Streaming chat - returns a ReadableStream of SSE events
+  chatStream: async (conversationId: string, message: string, webSearch: boolean = false): Promise<ReadableStreamDefaultReader<Uint8Array>> => {
+    const res = await fetch(`${BASE}/api/chat/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify({ conversationId, message, webSearch }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error ?? `HTTP ${res.status}`);
+    }
+    return res.body!.getReader();
+  },
+
+  // Web search
+  webSearch: (query: string) =>
+    request<{ results: string }>('/api/web-search', {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    }),
+
   // Conversations
   getConversations: () =>
     request<{ conversations: any[] }>('/api/conversations'),
@@ -81,6 +102,27 @@ export const api = {
   // Gateway info
   getGatewaySessions: () => request<{ sessions: any[] }>('/api/gateway/sessions'),
   getGatewayChannels: () => request<{ channels: any[] }>('/api/gateway/channels'),
+
+  // Knowledge Base (RAG)
+  getKBCollections: () => request<any>('/api/kb/collections'),
+  createKBCollection: (data: { name: string; description?: string; chunk_strategy?: string; max_tokens?: number; overlap?: number; tags?: string[] }) =>
+    request<any>('/api/kb/collections', { method: 'POST', body: JSON.stringify(data) }),
+  deleteKBCollection: (id: string) =>
+    request<any>('/api/kb/collections/' + id, { method: 'DELETE' }),
+  getKBDocuments: (collectionId: string) =>
+    request<any>('/api/kb/collections/' + collectionId + '/documents'),
+  addKBDocument: (collectionId: string, data: { source: string; input: string; name?: string }) =>
+    request<any>('/api/kb/collections/' + collectionId + '/documents', { method: 'POST', body: JSON.stringify(data) }),
+  deleteKBDocument: (collectionId: string, docId: string) =>
+    request<any>('/api/kb/collections/' + collectionId + '/documents/' + docId, { method: 'DELETE' }),
+  searchKB: (query: string, collectionIds?: string[], topK?: number) =>
+    request<any>('/api/kb/search', { method: 'POST', body: JSON.stringify({ query, collection_ids: collectionIds, top_k: topK }) }),
+
+  // Resources
+  getResourceOverview: () => request<any>('/api/resources/overview'),
+  getProviderHealth: () => request<any>('/api/provider/health'),
+  getModels: () => request<any>('/api/models'),
+  getOllamaModels: () => request<any>('/api/ollama/models'),
 };
 
 // ─── Gateway WebSocket Client ───────────────────────────────

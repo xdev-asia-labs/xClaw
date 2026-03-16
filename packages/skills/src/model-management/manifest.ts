@@ -229,6 +229,15 @@ export const modelManagementManifest: SkillManifest = {
       returns: { name: 'collections', type: 'array', description: 'Array of collections' },
     },
     {
+      name: 'kb_list_documents',
+      description: 'List all documents in a knowledge collection',
+      category: 'model-management',
+      parameters: [
+        { name: 'collection_id', type: 'string', description: 'Collection ID', required: true },
+      ],
+      returns: { name: 'documents', type: 'array', description: 'Array of documents' },
+    },
+    {
       name: 'kb_delete_collection',
       description: 'Delete an entire knowledge collection and all its documents/chunks',
       category: 'model-management',

@@ -123,6 +123,104 @@ export class Agent {
     return assistantContent;
   }
 
+  // ─── Streaming Chat ───────────────────────────────────────
+
+  async *chatStream(sessionId: string, userMessage: string): AsyncGenerator<{ type: 'delta' | 'tool' | 'done'; content: string }> {
+    // Save user message to history
+    this.memory.addMessage(sessionId, {
+      id: crypto.randomUUID(),
+      sessionId,
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date().toISOString(),
+    });
+
+    const messages = await this.buildMessages(sessionId, userMessage);
+    const toolDefs = this.tools.getAllDefinitions();
+
+    // Check if adapter supports streaming
+    if (!this.llmAdapter.chatStream) {
+      // Fallback to non-streaming
+      const response = await this.llmAdapter.chat(messages, toolDefs);
+      yield { type: 'delta', content: response.content || '(No response)' };
+      yield { type: 'done', content: '' };
+      return;
+    }
+
+    let fullContent = '';
+    let iterations = 0;
+
+    while (iterations < MAX_TOOL_ITERATIONS) {
+      iterations++;
+      let iterContent = '';
+
+      for await (const chunk of this.llmAdapter.chatStream(messages, toolDefs)) {
+        if (chunk.type === 'delta') {
+          iterContent += chunk.content;
+          yield { type: 'delta', content: chunk.content };
+        } else if (chunk.type === 'done') {
+          if (chunk.finishReason === 'tool_calls' && chunk.toolCalls?.length) {
+            // Execute tool calls
+            yield { type: 'tool', content: `Calling tools: ${chunk.toolCalls.map(tc => tc.name).join(', ')}` };
+            const results = await this.tools.executeAll(chunk.toolCalls);
+
+            messages.push({
+              role: 'assistant',
+              content: iterContent,
+              toolCalls: chunk.toolCalls,
+            });
+
+            for (const result of results) {
+              messages.push({
+                role: 'tool',
+                content: JSON.stringify(result.result),
+                toolCallId: result.toolCallId,
+              });
+            }
+            // Continue the loop for the next LLM call
+            fullContent += iterContent;
+            iterContent = '';
+            break;
+          } else {
+            // Done - no more tool calls
+            fullContent += iterContent;
+            yield { type: 'done', content: '' };
+
+            // Save to memory
+            this.memory.addMessage(sessionId, {
+              id: crypto.randomUUID(),
+              sessionId,
+              role: 'assistant',
+              content: fullContent || '(No response)',
+              timestamp: new Date().toISOString(),
+            });
+
+            await this.eventBus.emit({
+              type: 'agent:response',
+              payload: { sessionId, content: fullContent },
+              source: 'agent',
+              timestamp: new Date().toISOString(),
+            });
+
+            return;
+          }
+        }
+      }
+    }
+
+    // If we exhausted iterations, still finalize
+    yield { type: 'done', content: '' };
+    if (fullContent) {
+      this.memory.addMessage(sessionId, {
+        id: crypto.randomUUID(),
+        sessionId,
+        role: 'assistant',
+        content: fullContent,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
   // ─── Handle incoming from messaging platforms ───────────
 
   async handleMessage(incoming: IncomingMessage): Promise<OutgoingMessage> {

@@ -12,11 +12,23 @@ export function createPgPool(connectionString: string): PgPool {
     connectionString,
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 15000,
   });
 }
 
 export async function runMigrations(pool: PgPool, migrationsDir: string): Promise<void> {
+  // Wait for PG to be truly ready (retry with backoff)
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      await pool.query('SELECT 1');
+      break;
+    } catch (err) {
+      if (attempt === 5) throw err;
+      console.log(`[migration] PG not ready, retry ${attempt}/5...`);
+      await new Promise(r => setTimeout(r, attempt * 2000));
+    }
+  }
+
   // Ensure migrations tracking table exists
   await pool.query(`
     CREATE TABLE IF NOT EXISTS _migrations (

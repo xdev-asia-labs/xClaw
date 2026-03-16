@@ -58,6 +58,15 @@ export function createKnowledgeTools(knowledgeService: KnowledgeService, ragServ
       return { content: [{ type: 'text' as const, text: JSON.stringify({ total: collections.length, collections }, null, 2) }] };
     },
 
+    kb_list_documents: async (args: Record<string, unknown>) => {
+      const collectionId = args.collection_id as string;
+      if (!collectionId) {
+        return { content: [{ type: 'text' as const, text: '❌ Missing required: collection_id' }], isError: true };
+      }
+      const documents = await knowledgeService.listDocuments(collectionId);
+      return { content: [{ type: 'text' as const, text: JSON.stringify({ total: documents.length, documents }, null, 2) }] };
+    },
+
     kb_delete_collection: async (args: Record<string, unknown>) => {
       const collectionId = args.collection_id as string;
       if (!collectionId) {
