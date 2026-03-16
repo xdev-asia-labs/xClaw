@@ -21,7 +21,8 @@
         "@autox/shared": "*",
         "ws": "^8.18.0",
         "express": "^5.0.0",
-        "cors": "^2.8.5"
+        "cors": "^2.8.5",
+        "pg": "^8.13.0"
     },
     "devDependencies": {
         "@types/ws": "^8.5.0",

@@ -6,6 +6,7 @@ import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
+import pg from 'pg';
 import { Agent } from '@autox/core';
 import type {
   GatewayConfig, GatewayMessage, GatewaySession,
@@ -13,6 +14,8 @@ import type {
 } from '@autox/shared';
 import { SessionManager } from './session-manager.js';
 import { ChannelManager } from './channel-manager.js';
+import { AuthService } from './auth-service.js';
+import type { AuthUser } from './auth-service.js';
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -20,9 +23,19 @@ interface ConnectedClient {
   unsubscribe: () => void;
 }
 
+// Extend Express Request with auth user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+    }
+  }
+}
+
 export class Gateway {
   readonly sessions: SessionManager;
   readonly channels: ChannelManager;
+  readonly auth: AuthService;
 
   private agent: Agent;
   private config: GatewayConfig;
@@ -30,6 +43,7 @@ export class Gateway {
   private wss?: WebSocketServer;
   private clients: Map<string, ConnectedClient> = new Map();
   private workflowStore: Map<string, Workflow> = new Map();
+  private pgPool: pg.Pool;
 
   constructor(agent: Agent, config: Partial<GatewayConfig> = {}) {
     this.agent = agent;
@@ -42,6 +56,13 @@ export class Gateway {
       corsOrigins: ['http://localhost:3000'],
       ...config,
     };
+
+    // Init PG pool for auth
+    this.pgPool = new pg.Pool({
+      connectionString: process.env.PG_CONNECTION_STRING ?? 'postgresql://autox:autox@localhost:5432/autox',
+      max: 5,
+    });
+    this.auth = new AuthService(this.pgPool);
 
     this.sessions = new SessionManager(
       this.config.sessionTimeout,
@@ -62,6 +83,114 @@ export class Gateway {
     const app = express();
     app.use(cors({ origin: this.config.corsOrigins }));
     app.use(express.json({ limit: '10mb' }));
+
+    // ── Auth middleware helper ─────────────────────────────
+    const requireAuth = async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> => {
+      const header = req.headers.authorization;
+      if (!header?.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Authentication required' });
+        return;
+      }
+      const token = header.slice(7);
+      const user = await this.auth.getUserByToken(token);
+      if (!user) {
+        res.status(401).json({ error: 'Invalid or expired token' });
+        return;
+      }
+      req.user = user;
+      next();
+    };
+
+    // ── Auth routes (public) ──────────────────────────────
+    app.post('/api/auth/register', async (req, res) => {
+      try {
+        const { username, password, displayName } = req.body;
+        const result = await this.auth.register(username, password, displayName);
+        res.json(result);
+      } catch (err) {
+        res.status(400).json({ error: err instanceof Error ? err.message : 'Registration failed' });
+      }
+    });
+
+    app.post('/api/auth/login', async (req, res) => {
+      try {
+        const { username, password } = req.body;
+        const result = await this.auth.login(username, password);
+        res.json(result);
+      } catch (err) {
+        res.status(401).json({ error: err instanceof Error ? err.message : 'Login failed' });
+      }
+    });
+
+    app.get('/api/auth/me', requireAuth, (req, res) => {
+      res.json({ user: req.user });
+    });
+
+    app.post('/api/auth/logout', requireAuth, (req, res) => {
+      const token = req.headers.authorization!.slice(7);
+      this.auth.logout(token);
+      res.json({ success: true });
+    });
+
+    // ── Chat history routes (protected) ────────────────────
+    app.get('/api/conversations', requireAuth, async (req, res) => {
+      try {
+        const conversations = await this.auth.getConversations(req.user!.id);
+        res.json({ conversations });
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/conversations', requireAuth, async (req, res) => {
+      try {
+        const conv = await this.auth.createConversation(req.user!.id, req.body.title);
+        res.json(conv);
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.delete('/api/conversations/:id', requireAuth, async (req, res) => {
+      try {
+        await this.auth.deleteConversation(req.user!.id, req.params.id as string);
+        res.json({ success: true });
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.patch('/api/conversations/:id', requireAuth, async (req, res) => {
+      try {
+        await this.auth.renameConversation(req.user!.id, req.params.id as string, req.body.title);
+        res.json({ success: true });
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.get('/api/conversations/:id/messages', requireAuth, async (req, res) => {
+      try {
+        const messages = await this.auth.getMessages(req.user!.id, req.params.id as string);
+        res.json({ messages });
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    // Protected chat endpoint - saves messages per user
+    app.post('/api/chat', requireAuth, async (req, res) => {
+      const { conversationId, message } = req.body;
+      if (!message) { res.status(400).json({ error: 'message is required' }); return; }
+      if (!conversationId) { res.status(400).json({ error: 'conversationId is required' }); return; }
+      try {
+        // Save user message
+        await this.auth.saveMessage(conversationId, 'user', message);
+        await this.auth.autoTitle(conversationId, message);
+
+        // Get AI response
+        const start = Date.now();
+        const response = await this.agent.chat(conversationId, message);
+        const latencyMs = Date.now() - start;
+
+        // Save assistant message
+        await this.auth.saveMessage(conversationId, 'assistant', response, { latencyMs });
+
+        res.json({ conversationId, response });
+      } catch (err) {
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
+      }
+    });
 
     // Health & info endpoint
     app.get('/api/health', (_req, res) => {
@@ -102,6 +231,7 @@ export class Gateway {
   async stop(): Promise<void> {
     this.sessions.stopCleanup();
     await this.channels.stopAll();
+    await this.pgPool.end();
 
     // Close all WS connections
     for (const client of this.clients.values()) {
@@ -281,19 +411,6 @@ export class Gateway {
   // ─── REST Convenience Routes ──────────────────────────────
 
   private registerRestRoutes(app: express.Express): void {
-    // Chat
-    app.post('/api/chat', async (req, res) => {
-      const { sessionId, message } = req.body;
-      if (!message) return res.status(400).json({ error: 'message is required' });
-      const sid = sessionId ?? crypto.randomUUID();
-      try {
-        const response = await this.agent.chat(sid, message);
-        res.json({ sessionId: sid, response });
-      } catch (err) {
-        res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
-      }
-    });
-
     // Skills
     app.get('/api/skills', (_req, res) => {
       res.json({ skills: this.agent.skills.listAll() });

@@ -2,11 +2,14 @@
 // API Client - REST + Gateway WebSocket
 // ============================================================
 
+import { uuid } from './uuid.js';
+import { getAuthHeaders } from '../stores/auth-store.js';
+
 const BASE = '';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders(), ...options?.headers },
     ...options,
   });
   if (!res.ok) {
@@ -17,12 +20,24 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  // Chat
-  chat: (sessionId: string, message: string) =>
-    request<{ sessionId: string; response: string }>('/api/chat', {
+  // Chat (requires conversationId now)
+  chat: (conversationId: string, message: string) =>
+    request<{ conversationId: string; response: string }>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({ sessionId, message }),
+      body: JSON.stringify({ conversationId, message }),
     }),
+
+  // Conversations
+  getConversations: () =>
+    request<{ conversations: any[] }>('/api/conversations'),
+  createConversation: (title?: string) =>
+    request<any>('/api/conversations', { method: 'POST', body: JSON.stringify({ title }) }),
+  deleteConversation: (id: string) =>
+    request('/api/conversations/' + id, { method: 'DELETE' }),
+  renameConversation: (id: string, title: string) =>
+    request('/api/conversations/' + id, { method: 'PATCH', body: JSON.stringify({ title }) }),
+  getMessages: (conversationId: string) =>
+    request<{ messages: any[] }>('/api/conversations/' + conversationId + '/messages'),
 
   // Skills
   getSkills: () => request<{ skills: any[] }>('/api/skills'),
@@ -150,7 +165,7 @@ export class GatewayClient {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     this.ws.send(JSON.stringify({
       ...msg,
-      id: msg.id ?? crypto.randomUUID(),
+      id: msg.id ?? uuid(),
       timestamp: new Date().toISOString(),
     }));
   }
@@ -158,7 +173,7 @@ export class GatewayClient {
   /** Send a request and wait for the response */
   request(msg: { type: string; payload: any; sessionId?: string }): Promise<any> {
     return new Promise((resolve, reject) => {
-      const id = crypto.randomUUID();
+      const id = uuid();
       this.pendingRequests.set(id, { resolve, reject });
       this.send({ ...msg, id });
       // Timeout after 60s

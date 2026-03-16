@@ -13,9 +13,11 @@
         "@autox/shared": "*",
         "@autox/skills": "*",
         "@autox/gateway": "*",
-        "@autox/channel-telegram": "*",
-        "@autox/channel-discord": "*",
         "dotenv": "^16.4.0"
+    },
+    "optionalDependencies": {
+        "@autox/channel-telegram": "*",
+        "@autox/channel-discord": "*"
     },
     "devDependencies": {
         "tsx": "^4.19.0",

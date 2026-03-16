@@ -3,6 +3,7 @@
 // ============================================================
 
 import { create } from 'zustand';
+import { uuid } from '../utils/uuid.js';
 
 export interface WFNode {
   id: string;
@@ -113,11 +114,11 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>((set) => ({
   messages: [],
-  sessionId: crypto.randomUUID(),
+  sessionId: uuid(),
   isLoading: false,
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
   setLoading: (isLoading) => set({ isLoading }),
-  clearMessages: () => set({ messages: [], sessionId: crypto.randomUUID() }),
+  clearMessages: () => set({ messages: [], sessionId: uuid() }),
   setSessionId: (sessionId) => set({ sessionId }),
 }));
 
