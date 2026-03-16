@@ -423,6 +423,108 @@ export class Gateway {
         })),
       });
     });
+
+    // ── Model Management proxy routes ──────────────────────
+    // These routes forward to the model-management skill tools via the tool registry
+    const parseToolResult = (r: unknown) => {
+      const tr = r as { success: boolean; result: unknown; error?: string };
+      if (!tr.success) throw new Error(tr.error ?? 'Tool execution failed');
+      const inner = tr.result;
+      // If tool returned MCP format { content: [{ text }] }, parse the text
+      if (inner && typeof inner === 'object' && 'content' in inner) {
+        const content = (inner as { content: Array<{ text: string }> }).content;
+        if (Array.isArray(content) && content[0]?.text) {
+          try { return JSON.parse(content[0].text); } catch { return content[0].text; }
+        }
+      }
+      // Otherwise return the raw result
+      return inner;
+    };
+
+    app.get('/api/models', async (_req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'model_list', arguments: {} });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/models', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'model_create', arguments: req.body as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.get('/api/models/active', async (_req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'model_get_active', arguments: {} });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/models/switch', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'model_switch', arguments: req.body as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/models/benchmark', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'model_benchmark', arguments: req.body as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.get('/api/ollama/models', async (_req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'ollama_list', arguments: {} });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.get('/api/mcp/servers', async (req, res) => {
+      try {
+        const args = req.query.domain ? { domain: req.query.domain } : {};
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'mcp_list', arguments: args as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/mcp/servers', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'mcp_register', arguments: req.body as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.get('/api/kb/collections', async (_req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_list_collections', arguments: {} });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/kb/collections', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_create_collection', arguments: req.body as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.post('/api/kb/search', async (req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'kb_search', arguments: req.body as Record<string, unknown> });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    app.get('/api/provider/health', async (_req, res) => {
+      try {
+        const result = await this.agent.tools.execute({ id: 'rest', name: 'provider_health_check', arguments: {} });
+        res.json(parseToolResult(result));
+      } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
   }
 
   // ─── Helpers ──────────────────────────────────────────────

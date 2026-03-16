@@ -4,10 +4,18 @@
         "outDir": "./dist",
         "rootDir": "./src"
     },
-    "include": ["src"],
+    "include": [
+        "src"
+    ],
     "references": [
-        { "path": "../shared" },
-        { "path": "../core" },
-        { "path": "../gateway" }
+        {
+            "path": "../shared"
+        },
+        {
+            "path": "../core"
+        },
+        {
+            "path": "../gateway"
+        }
     ]
 }

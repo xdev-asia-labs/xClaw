@@ -5,7 +5,9 @@
     "author": "AutoX",
     "type": "channel",
     "entry": "dist/index.js",
-    "platforms": ["discord"],
+    "platforms": [
+        "discord"
+    ],
     "config": [
         {
             "key": "botToken",
@@ -22,5 +24,7 @@
             "required": false
         }
     ],
-    "permissions": ["network"]
+    "permissions": [
+        "network"
+    ]
 }

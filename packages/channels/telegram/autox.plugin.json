@@ -5,7 +5,9 @@
     "author": "AutoX",
     "type": "channel",
     "entry": "dist/index.js",
-    "platforms": ["telegram"],
+    "platforms": [
+        "telegram"
+    ],
     "config": [
         {
             "key": "botToken",
@@ -15,5 +17,7 @@
             "required": true
         }
     ],
-    "permissions": ["network"]
+    "permissions": [
+        "network"
+    ]
 }

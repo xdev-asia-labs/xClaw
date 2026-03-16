@@ -108,11 +108,15 @@ export class MemoryManager {
     return entry;
   }
 
-  // Semantic search over memories
+  // Semantic search over memories (falls back to text search if embedding fails)
   async recall(query: string, limit = 5): Promise<MemoryEntry[]> {
     if (this.embedAdapter?.embed) {
-      const embedding = await this.embedAdapter.embed(query);
-      return this.store.searchByEmbedding(embedding, limit);
+      try {
+        const embedding = await this.embedAdapter.embed(query);
+        return this.store.searchByEmbedding(embedding, limit);
+      } catch {
+        // Fall back to text search when embedding is unavailable
+      }
     }
     return this.store.search(query, limit);
   }

@@ -5,7 +5,7 @@
 
 import { Agent } from '@autox/core';
 import { Gateway } from '@autox/gateway';
-import { programmingSkill, healthcareSkill } from '@autox/skills';
+import { programmingSkill, healthcareSkill, modelManagementSkill, getRAGService } from '@autox/skills';
 import type { AgentConfig } from '@autox/shared';
 import dotenv from 'dotenv';
 
@@ -50,8 +50,22 @@ const agent = new Agent(agentConfig);
 async function initSkills() {
   await agent.skills.register(programmingSkill);
   await agent.skills.register(healthcareSkill);
+  await agent.skills.register(modelManagementSkill);
   await agent.skills.activate('programming');
   await agent.skills.activate('healthcare');
+  await agent.skills.activate('model-management', {
+    pgConnectionString: process.env.PG_CONNECTION_STRING ?? 'postgresql://autox:autox_secret@localhost:5432/autox',
+    mongoConnectionString: process.env.MONGO_CONNECTION_STRING ?? 'mongodb://autox:autox_secret@localhost:27017/autox?authSource=admin',
+    encryptionKey: process.env.ENCRYPTION_KEY ?? '',
+    ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
+  });
+
+  // Wire RAG context into Agent
+  const ragSvc = getRAGService();
+  if (ragSvc) {
+    agent.setRAGContextProvider((query) => ragSvc.buildContext(query));
+  }
+
   console.log('Skills activated:', agent.skills.listActive().map(s => s.name).join(', '));
 }
 
@@ -68,6 +82,7 @@ async function start() {
 
   // Optional: Register channel plugins from environment
   if (process.env.TELEGRAM_BOT_TOKEN) {
+    // @ts-ignore — optional channel package, not yet implemented
     const { TelegramChannel } = await import('@autox/channel-telegram');
     await gateway.channels.register(new TelegramChannel(), {
       botToken: process.env.TELEGRAM_BOT_TOKEN,
@@ -76,6 +91,7 @@ async function start() {
   }
 
   if (process.env.DISCORD_BOT_TOKEN) {
+    // @ts-ignore — optional channel package, not yet implemented
     const { DiscordChannel } = await import('@autox/channel-discord');
     await gateway.channels.register(new DiscordChannel(), {
       botToken: process.env.DISCORD_BOT_TOKEN,

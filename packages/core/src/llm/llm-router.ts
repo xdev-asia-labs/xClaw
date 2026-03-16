@@ -63,6 +63,7 @@ export class OpenAIAdapter implements LLMAdapter {
   }
 
   async embed(text: string): Promise<number[]> {
+    if (!this.config.apiKey) throw new Error('No API key configured for embeddings');
     const baseUrl = this.config.baseUrl ?? 'https://api.openai.com/v1';
     const res = await fetch(`${baseUrl}/embeddings`, {
       method: 'POST',
@@ -75,7 +76,9 @@ export class OpenAIAdapter implements LLMAdapter {
         input: text,
       }),
     });
+    if (!res.ok) throw new Error(`Embedding API error: ${res.status}`);
     const data = await res.json() as { data: { embedding: number[] }[] };
+    if (!data.data?.[0]?.embedding) throw new Error('Invalid embedding response');
     return data.data[0].embedding;
   }
 

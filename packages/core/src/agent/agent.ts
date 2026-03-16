@@ -25,6 +25,7 @@ export class Agent {
 
   private config: AgentConfig;
   private llmAdapter: LLMAdapter;
+  private ragContextProvider?: (query: string) => Promise<string>;
 
   constructor(config: AgentConfig) {
     this.config = config;
@@ -142,6 +143,12 @@ export class Agent {
     return this.workflows.execute(workflow, triggerData);
   }
 
+  // ─── RAG Integration ─────────────────────────────────────
+
+  setRAGContextProvider(provider: (query: string) => Promise<string>): void {
+    this.ragContextProvider = provider;
+  }
+
   // ─── Internal ───────────────────────────────────────────
 
   private async buildMessages(sessionId: string, currentMessage: string): Promise<LLMMessage[]> {
@@ -160,6 +167,16 @@ export class Agent {
         systemParts.push('\n\n## Relevant Memories:\n' +
           memories.map(m => `- [${m.type}] ${m.content}`).join('\n'));
       }
+    }
+
+    // Inject RAG context if provider is set
+    if (this.ragContextProvider) {
+      try {
+        const ragContext = await this.ragContextProvider(currentMessage);
+        if (ragContext) {
+          systemParts.push('\n\n## Knowledge Base Context:\n' + ragContext);
+        }
+      } catch { /* non-critical */ }
     }
 
     messages.push({ role: 'system', content: systemParts.join('') });
