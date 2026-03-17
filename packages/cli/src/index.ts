@@ -8,6 +8,8 @@ import { gatewayCommand } from './commands/gateway.js';
 import { chatCommand } from './commands/chat.js';
 import { skillsCommand } from './commands/skills.js';
 import { doctorCommand } from './commands/doctor.js';
+import { updateCommand } from './commands/update.js';
+import { hubCommand } from './commands/hub.js';
 
 const program = new Command();
 
@@ -19,6 +21,8 @@ program
 program.addCommand(gatewayCommand);
 program.addCommand(chatCommand);
 program.addCommand(skillsCommand);
+program.addCommand(hubCommand);
 program.addCommand(doctorCommand);
+program.addCommand(updateCommand);
 
 program.parse();

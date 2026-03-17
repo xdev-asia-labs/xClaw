@@ -4,17 +4,29 @@
     "type": "module",
     "description": "Command-line interface for xClaw AI Agent Platform",
     "license": "MIT",
-    "homepage": "https://ai.xdev.asia",
+    "homepage": "https://xclaw.xdev.asia",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/tdduydev/xClaw.git",
         "directory": "packages/cli"
     },
-    "keywords": ["xclaw", "ai", "agent", "cli"],
+    "keywords": [
+        "xclaw",
+        "ai",
+        "agent",
+        "cli"
+    ],
     "bin": {
         "xclaw": "./dist/index.js"
     },
-    "files": ["dist", "README.md"],
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsc",
         "dev": "tsx src/index.ts",

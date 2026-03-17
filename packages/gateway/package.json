@@ -4,13 +4,20 @@
     "type": "module",
     "description": "HTTP/WebSocket gateway server for xClaw AI Agent Platform",
     "license": "MIT",
-    "homepage": "https://ai.xdev.asia",
+    "homepage": "https://xclaw.xdev.asia",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/tdduydev/xClaw.git",
         "directory": "packages/gateway"
     },
-    "keywords": ["xclaw", "ai", "agent", "gateway", "api", "websocket"],
+    "keywords": [
+        "xclaw",
+        "ai",
+        "agent",
+        "gateway",
+        "api",
+        "websocket"
+    ],
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "exports": {
@@ -19,7 +26,14 @@
             "types": "./dist/index.d.ts"
         }
     },
-    "files": ["dist", "README.md"],
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsc",
         "dev": "tsx watch src/index.ts",
@@ -28,6 +42,7 @@
     "dependencies": {
         "@xclaw/core": "^0.1.0",
         "@xclaw/shared": "^0.1.0",
+        "@xclaw/skill-hub": "^0.1.0",
         "@types/multer": "^2.1.0",
         "cors": "^2.8.5",
         "exceljs": "^4.4.0",

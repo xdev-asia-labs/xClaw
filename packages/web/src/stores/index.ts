@@ -135,10 +135,10 @@ export const useChatStore = create<ChatState>((set) => ({
 
 // ─── App Store ──────────────────────────────────────────────
 
-type AppView = 'chat' | 'knowledge' | 'workflows' | 'skills' | 'resources' | 'settings' | 'health-dashboard' | 'users' | 'channels' | 'api-keys' | 'models' | 'audit-log' | 'analytics' | 'mcp-servers' | 'doctor-profiles' | 'learning-data' | 'data-quality' | 'finetune-studio' | 'chat-analysis' | 'my-learning' | 'agent-hub';
+type AppView = 'chat' | 'knowledge' | 'workflows' | 'skills' | 'resources' | 'settings' | 'health-dashboard' | 'users' | 'channels' | 'api-keys' | 'models' | 'audit-log' | 'analytics' | 'mcp-servers' | 'doctor-profiles' | 'learning-data' | 'data-quality' | 'finetune-studio' | 'chat-analysis' | 'my-learning' | 'agent-hub' | 'skill-hub';
 
-const VALID_VIEWS = new Set<string>(['chat','knowledge','workflows','skills','resources','settings','health-dashboard','users','channels','api-keys','models','audit-log','analytics','mcp-servers','doctor-profiles','learning-data','data-quality','finetune-studio','chat-analysis','my-learning','agent-hub']);
-const USER_VIEWS = new Set<string>(['chat','knowledge','api-keys','my-learning','agent-hub']);
+const VALID_VIEWS = new Set<string>(['chat','knowledge','workflows','skills','resources','settings','health-dashboard','users','channels','api-keys','models','audit-log','analytics','mcp-servers','doctor-profiles','learning-data','data-quality','finetune-studio','chat-analysis','my-learning','agent-hub','skill-hub']);
+const USER_VIEWS = new Set<string>(['chat','knowledge','api-keys','my-learning','agent-hub','skill-hub']);
 
 function getInitialView(): AppView {
   const hash = window.location.hash.replace('#/', '').replace('#', '');

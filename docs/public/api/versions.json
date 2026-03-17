@@ -1,0 +1,16 @@
+{
+    "latest": "0.2.0",
+    "minimum": "0.1.0",
+    "releaseDate": "2026-03-17T00:00:00.000Z",
+    "changelog": "https://github.com/tdduydev/xClaw/releases",
+    "npm": "https://www.npmjs.com/org/xclaw",
+    "packages": {
+        "@xclaw/core": "0.2.0",
+        "@xclaw/shared": "0.2.0",
+        "@xclaw/skills": "0.2.0",
+        "@xclaw/gateway": "0.2.0",
+        "@xclaw/cli": "0.2.0"
+    },
+    "releaseNotes": "Bug fixes and performance improvements. Added Agent Hub registry API.",
+    "updateCommand": "npm update @xclaw/core @xclaw/shared @xclaw/skills @xclaw/gateway @xclaw/cli"
+}

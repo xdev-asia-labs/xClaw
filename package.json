@@ -7,6 +7,7 @@
         "packages/shared",
         "packages/core",
         "packages/skills",
+        "packages/skill-hub",
         "packages/gateway",
         "packages/channels/*",
         "packages/knowledge-packs/*",
@@ -23,7 +24,11 @@
         "gateway": "npm run start -w packages/gateway",
         "cli": "tsx packages/cli/src/index.ts",
         "test": "vitest",
-        "lint": "eslint packages/*/src --ext .ts,.tsx"
+        "lint": "eslint packages/*/src --ext .ts,.tsx",
+        "release:patch": "npm run build && npm version patch --no-git-tag-version && node scripts/sync-versions.mjs && npm run publish:all",
+        "release:minor": "npm run build && npm version minor --no-git-tag-version && node scripts/sync-versions.mjs && npm run publish:all",
+        "release:major": "npm run build && npm version major --no-git-tag-version && node scripts/sync-versions.mjs && npm run publish:all",
+        "publish:all": "npm publish -w packages/shared --access public && npm publish -w packages/core --access public && npm publish -w packages/skills --access public && npm publish -w packages/gateway --access public && npm publish -w packages/cli --access public"
     },
     "devDependencies": {
         "concurrently": "^9.1.0",

@@ -71,6 +71,25 @@ export const api = {
   // Tools
   getTools: () => request<{ tools: any[] }>('/api/tools'),
 
+  // Version & Registry
+  getVersion: () => request<{ version: string }>('/api/version'),
+  checkForUpdates: () =>
+    request<{
+      currentVersion: string;
+      latestVersion: string;
+      hasUpdate: boolean;
+      isOutdated: boolean;
+      releaseNotes: string;
+      changelog: string;
+      updateCommand: string;
+    }>('/api/version/check'),
+  getAgentRegistry: () =>
+    request<{
+      version: string;
+      updatedAt: string;
+      agents: any[];
+    }>('/api/agent-registry'),
+
   // Workflows
   getWorkflows: () => request<{ workflows: any[] }>('/api/workflows'),
   getWorkflow: (id: string) => request<any>('/api/workflows/' + id),
@@ -288,6 +307,51 @@ export const api = {
     request<{ key: string; id: string; prefix: string }>('/api/api-keys', { method: 'POST', body: JSON.stringify({ name }) }),
   deleteApiKey: (id: string) =>
     request('/api/api-keys/' + id, { method: 'DELETE' }),
+
+  // ─── SkillHub Marketplace ────────────────────────────
+  hub: {
+    search: (params?: { q?: string; category?: string; source?: string; tags?: string; sortBy?: string; page?: number; pageSize?: number }) => {
+      const qs = new URLSearchParams();
+      if (params?.q) qs.set('q', params.q);
+      if (params?.category) qs.set('category', params.category);
+      if (params?.source) qs.set('source', params.source);
+      if (params?.tags) qs.set('tags', params.tags);
+      if (params?.sortBy) qs.set('sortBy', params.sortBy);
+      if (params?.page) qs.set('page', String(params.page));
+      if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
+      const q = qs.toString();
+      return request<any>('/api/hub/skills' + (q ? '?' + q : ''));
+    },
+    getSkill: (id: string) => request<any>('/api/hub/skills/' + id),
+    installSkill: (id: string) =>
+      request<any>('/api/hub/skills/' + id + '/install', { method: 'POST' }),
+    uninstallSkill: (id: string) =>
+      request<any>('/api/hub/skills/' + id + '/uninstall', { method: 'DELETE' }),
+    getReviews: (skillId: string) =>
+      request<{ reviews: any[] }>('/api/hub/skills/' + skillId + '/reviews'),
+    addReview: (skillId: string, rating: number, comment: string, author: string) =>
+      request<any>('/api/hub/skills/' + skillId + '/reviews', {
+        method: 'POST', body: JSON.stringify({ rating, comment, author }),
+      }),
+    getFeatured: () => request<{ skills: any[] }>('/api/hub/featured'),
+    getTrending: () => request<{ skills: any[] }>('/api/hub/trending'),
+    getStats: () => request<any>('/api/hub/stats'),
+    listAnthropicSkills: () => request<{ skills: any[] }>('/api/hub/import/anthropic'),
+    importAnthropicSkill: (name: string) =>
+      request<any>('/api/hub/import/anthropic/' + name, { method: 'POST' }),
+    syncAnthropicSkills: () =>
+      request<any>('/api/hub/import/anthropic/sync', { method: 'POST' }),
+    importMcpServer: (packageName: string) =>
+      request<any>('/api/hub/import/mcp', { method: 'POST', body: JSON.stringify({ packageName }) }),
+    submitSkill: (manifest: any, author: { name: string; email?: string }, readme?: string) =>
+      request<any>('/api/hub/submit', { method: 'POST', body: JSON.stringify({ manifest, author, readme }) }),
+    getSubmissions: () => request<{ submissions: any[] }>('/api/hub/submissions'),
+    reviewSubmission: (id: string, action: string, reviewer: string, feedback?: string) =>
+      request<any>('/api/hub/submissions/' + id, {
+        method: 'PATCH', body: JSON.stringify({ action, reviewer, feedback }),
+      }),
+    checkUpdates: () => request<{ updates: any[] }>('/api/hub/updates'),
+  },
 };
 
 // ─── Gateway WebSocket Client ───────────────────────────────

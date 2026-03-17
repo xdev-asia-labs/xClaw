@@ -4,13 +4,21 @@
     "type": "module",
     "description": "Pre-built AI agent skill packs for xClaw — Programming, Healthcare, Analytics, DevOps, and more",
     "license": "MIT",
-    "homepage": "https://ai.xdev.asia",
+    "homepage": "https://xclaw.xdev.asia",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/tdduydev/xClaw.git",
         "directory": "packages/skills"
     },
-    "keywords": ["xclaw", "ai", "agent", "skills", "programming", "healthcare", "analytics"],
+    "keywords": [
+        "xclaw",
+        "ai",
+        "agent",
+        "skills",
+        "programming",
+        "healthcare",
+        "analytics"
+    ],
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "exports": {
@@ -19,7 +27,14 @@
             "types": "./dist/index.d.ts"
         }
     },
-    "files": ["dist", "README.md"],
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch"

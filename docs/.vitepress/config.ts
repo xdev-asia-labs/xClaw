@@ -7,14 +7,14 @@ export default defineConfig({
     ignoreDeadLinks: [/localhost/],
 
     head: [
-        ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+        ['link', { rel: 'icon', type: 'image/png', href: '/logo.png' }],
         ['meta', { name: 'theme-color', content: '#6366f1' }],
         // Open Graph
         ['meta', { property: 'og:type', content: 'website' }],
         ['meta', { property: 'og:title', content: 'xClaw — AI Agent Platform' }],
         ['meta', { property: 'og:description', content: 'Open-source AI Agent Platform with pluggable skills, visual workflows, and multi-LLM support' }],
-        ['meta', { property: 'og:url', content: 'https://ai.xdev.asia' }],
-        ['meta', { property: 'og:image', content: 'https://ai.xdev.asia/og-image.png' }],
+        ['meta', { property: 'og:url', content: 'https://xclaw.xdev.asia' }],
+        ['meta', { property: 'og:image', content: 'https://xclaw.xdev.asia/og-image.png' }],
         // Twitter
         ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
         ['meta', { name: 'twitter:title', content: 'xClaw — AI Agent Platform' }],
@@ -26,11 +26,11 @@ export default defineConfig({
     ],
 
     sitemap: {
-        hostname: 'https://ai.xdev.asia',
+        hostname: 'https://xclaw.xdev.asia',
     },
 
     themeConfig: {
-        logo: '/logo.svg',
+        logo: '/logo.png',
         siteTitle: 'xClaw',
 
         nav: [

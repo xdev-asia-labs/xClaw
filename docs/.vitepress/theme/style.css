@@ -1,13 +1,21 @@
 /**
- * Custom theme overrides for xClaw docs
+ * xClaw Docs — Premium Theme
+ * Glassmorphism, animations, gradient accents
  */
 
+/* ─── Brand Colors ─── */
 :root {
-    /* Brand colors */
     --vp-c-brand-1: #6366f1;
     --vp-c-brand-2: #818cf8;
     --vp-c-brand-3: #a5b4fc;
     --vp-c-brand-soft: rgba(99, 102, 241, 0.14);
+
+    /* Extended palette */
+    --xclaw-cyan: #06b6d4;
+    --xclaw-emerald: #10b981;
+    --xclaw-indigo: #6366f1;
+    --xclaw-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);
+    --xclaw-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.15), rgba(16, 185, 129, 0.15));
 
     /* Font */
     --vp-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
@@ -19,46 +27,354 @@
     --vp-c-brand-2: #a5b4fc;
     --vp-c-brand-3: #c7d2fe;
     --vp-c-brand-soft: rgba(129, 140, 248, 0.14);
+    --vp-c-bg: #0f0f1a;
+    --vp-c-bg-alt: #14142a;
+    --vp-c-bg-soft: #1a1a35;
 }
 
-/* Hero section gradient */
+/* ─── Global Smooth Scroll ─── */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ─── Hero Section ─── */
 .VPHero .name {
-    background: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);
+    background: var(--xclaw-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    animation: shimmer 3s ease-in-out infinite alternate;
 }
 
-/* Feature cards animation */
-.VPFeature {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+@keyframes shimmer {
+    0% { filter: brightness(1); }
+    100% { filter: brightness(1.15); }
 }
 
-.VPFeature:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+.VPHero .text {
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
-/* Home page actions */
+.VPHero .tagline {
+    max-width: 560px;
+    line-height: 1.6;
+    opacity: 0.85;
+}
+
+/* Hero image — glow + float */
+.VPHero .image-container .image-bg {
+    animation: heroGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlow {
+    0% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+.VPImage.image-src {
+    animation: heroFloat 6s ease-in-out infinite;
+}
+
+@keyframes heroFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* ─── Home Actions (CTA Buttons) ─── */
 .VPButton.brand {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: var(--xclaw-gradient);
     border: none;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .VPButton.brand:hover {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+    filter: brightness(1.1);
 }
 
-/* Smooth code blocks */
+.VPButton.alt {
+    border: 1px solid transparent;
+    background-image: linear-gradient(var(--vp-c-bg), var(--vp-c-bg)), var(--xclaw-gradient);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    transition: all 0.3s ease;
+}
+
+.VPButton.alt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+}
+
+/* ─── Feature Cards — Glassmorphism ─── */
+.VPFeature {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.dark .VPFeature {
+    background: rgba(20, 20, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.VPFeature::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--xclaw-gradient);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.VPFeature:hover::before {
+    opacity: 1;
+}
+
+.VPFeature:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.VPFeature .icon {
+    font-size: 1.5em;
+}
+
+.VPFeature .title {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.VPFeature .details {
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+/* ─── Sidebar ─── */
+.VPSidebar .group .title {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+}
+
+.VPSidebarItem.is-active > .item > .indicator {
+    background: var(--xclaw-gradient);
+}
+
+.VPSidebarItem.is-active > .item .link > .text {
+    color: var(--vp-c-brand-1);
+    font-weight: 600;
+}
+
+/* ─── Navbar ─── */
+.VPNav {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.dark .VPNav {
+    background: rgba(15, 15, 26, 0.85) !important;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.VPNavBar .title {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* Navbar logo */
+.VPNavBar .logo {
+    height: 28px;
+    width: 28px;
+    border-radius: 6px;
+}
+
+/* ─── Content Area ─── */
+.vp-doc h1 {
+    background: var(--xclaw-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.vp-doc h2 {
+    font-weight: 700;
+    padding-bottom: 12px;
+    border-bottom: 2px solid rgba(99, 102, 241, 0.15);
+}
+
+.vp-doc h3 {
+    font-weight: 600;
+}
+
+/* Custom containers / callouts */
+.vp-doc .custom-block {
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+
+.vp-doc .custom-block:hover {
+    transform: translateX(4px);
+}
+
+.vp-doc .custom-block.tip {
+    border-color: var(--xclaw-cyan);
+}
+
+.vp-doc .custom-block.warning {
+    border-color: #f59e0b;
+}
+
+/* ─── Code Blocks ─── */
+.vp-doc div[class*='language-'] {
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.08);
+}
+
+.dark .vp-doc div[class*='language-'] {
+    background: rgba(15, 15, 26, 0.9);
+    border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
 .vp-code-group .tabs label {
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    font-weight: 500;
 }
 
-/* Badge styling */
+.vp-code-group .tabs label.active {
+    color: var(--vp-c-brand-1);
+}
+
+/* ─── Tables ─── */
+.vp-doc table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.dark .vp-doc table th {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.vp-doc table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+}
+
+.vp-doc table tr {
+    transition: background 0.2s ease;
+}
+
+.dark .vp-doc table tr:hover {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* ─── Images (Diagrams) ─── */
+.vp-doc img {
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.vp-doc img:hover {
+    transform: scale(1.01);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+}
+
+/* ─── Badges ─── */
 .VPBadge {
     border-radius: 12px;
     font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* ─── Footer ─── */
+.VPFooter {
+    border-top: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.dark .VPFooter {
+    background: rgba(15, 15, 26, 0.95);
+}
+
+.VPFooter .message,
+.VPFooter .copyright {
+    opacity: 0.6;
+    font-size: 0.85rem;
+}
+
+/* ─── Links ─── */
+.vp-doc a {
+    text-decoration: none;
+    background-image: linear-gradient(var(--vp-c-brand-1), var(--vp-c-brand-1));
+    background-size: 0% 1px;
+    background-position: left bottom;
+    background-repeat: no-repeat;
+    transition: background-size 0.3s ease;
+}
+
+.vp-doc a:hover {
+    background-size: 100% 1px;
+}
+
+/* ─── Scrollbar (Dark) ─── */
+.dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: var(--vp-c-bg);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.5);
+}
+
+/* ─── Search Modal ─── */
+.dark .DocSearch-Modal {
+    background: rgba(15, 15, 26, 0.95);
+    backdrop-filter: blur(20px);
+}
+
+/* ─── Page Transitions ─── */
+.VPContent {
+    transition: opacity 0.2s ease;
+}
+
+/* ─── Responsive Image Scaling ─── */
+@media (max-width: 768px) {
+    .vp-doc img {
+        border-radius: 8px;
+    }
+
+    .VPFeature:hover {
+        transform: translateY(-3px);
+    }
 }

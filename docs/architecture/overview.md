@@ -6,48 +6,7 @@ xClaw is an open-source AI Agent platform built as a TypeScript monorepo. It pro
 
 ## High-Level Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                        Frontend (React)                          │
-│  ┌────────────┐ ┌────────────┐ ┌──────────┐ ┌───────────────┐  │
-│  │  Chat UI   │ │  Workflow  │ │  Skills  │ │   Settings    │  │
-│  │            │ │  Builder   │ │  Panel   │ │               │  │
-│  └─────┬──────┘ └─────┬──────┘ └────┬─────┘ └──────┬────────┘  │
-│        └───────────────┴─────────────┴──────────────┘           │
-│                         Zustand Stores                           │
-│                    REST API + WebSocket Client                    │
-└────────────────────────────┬─────────────────────────────────────┘
-                             │ HTTP / WS
-┌────────────────────────────┴─────────────────────────────────────┐
-│                     Server (Express + WS)                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
-│  │  REST API    │  │  WebSocket   │  │  Workflow Storage      │ │
-│  │  /api/*      │  │  /ws         │  │  (in-memory → DB)      │ │
-│  └──────┬───────┘  └──────┬───────┘  └────────────────────────┘ │
-│         └─────────────────┴──────────────────┐                   │
-└────────────────────────────┬─────────────────┘───────────────────┘
-                             │
-┌────────────────────────────┴─────────────────────────────────────┐
-│                        Agent Core                                 │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ ┌─────────┐ │
-│  │  LLM     │ │  Tool    │ │  Skill   │ │ Memory │ │Workflow │ │
-│  │  Router  │ │ Registry │ │ Manager  │ │Manager │ │ Engine  │ │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └───┬────┘ └────┬────┘ │
-│       │            │            │            │           │       │
-│       │       ┌────┴────────────┴────┐       │           │       │
-│       │       │      EventBus        │───────┘───────────┘       │
-│       │       │   (pub/sub engine)   │                           │
-│       │       └──────────────────────┘                           │
-└───────┼──────────────────────────────────────────────────────────┘
-        │
-┌───────┴──────────────────────────────────────────────────────────┐
-│                     External Services                             │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                       │
-│  │  OpenAI  │  │ Anthropic│  │  Ollama  │                       │
-│  │  API     │  │  API     │  │  (local) │                       │
-│  └──────────┘  └──────────┘  └──────────┘                       │
-└──────────────────────────────────────────────────────────────────┘
-```
+<img src="/diagrams/high-level-architecture.png" alt="High-Level Architecture" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
 
 ## Package Structure
 
@@ -69,21 +28,24 @@ shared ← core ← skills ← server
                              web (standalone)
 ```
 
+### Agent Core Components
+
+<img src="/diagrams/agent-core.png" alt="Agent Core Components" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
+
 ## Core Components
 
 ### 1. Agent (`packages/core/src/agent/agent.ts`)
 
 The central orchestrator. On initialization it wires up all subsystems:
 
-```
-Agent
-├── EventBus       — Internal pub/sub for decoupled communication
-├── LLMRouter      — Multi-provider LLM abstraction layer
-├── MemoryManager  — Vector memory with semantic search
-├── ToolRegistry   — Tool registration, approval, and execution
-├── SkillManager   — Plugin loader for skill packs
-└── WorkflowEngine — Visual workflow execution engine
-```
+| Subsystem | Purpose |
+|---|---|
+| **EventBus** | Internal pub/sub for decoupled communication |
+| **LLMRouter** | Multi-provider LLM abstraction layer |
+| **MemoryManager** | Vector memory with semantic search |
+| **ToolRegistry** | Tool registration, approval, and execution |
+| **SkillManager** | Plugin loader for skill packs |
+| **WorkflowEngine** | Visual workflow execution engine |
 
 **Chat Loop Algorithm:**
 1. User message is saved to conversation history
@@ -166,54 +128,15 @@ See [Workflow Engine Design](workflow-engine.md) for details.
 
 ### Chat Request Flow
 
-```
-User → POST /api/chat
-         → Agent.chat(sessionId, message)
-           → MemoryManager.recall() — find relevant memories
-           → Build LLM messages (system + history + user)
-           → LLMAdapter.chat(messages, tools)
-           → [If tool_calls] → ToolRegistry.executeAll()
-           →                  → Feed results back to LLM
-           →                  → Repeat (max 10x)
-           → Save response to history
-         ← Response text
-       ← JSON { sessionId, response }
-```
+<img src="/diagrams/chat-request-flow.png" alt="Chat Request Flow" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
 
 ### Workflow Execution Flow
 
-```
-Trigger → POST /api/workflows/:id/execute
-            → Agent.runWorkflow(workflow, triggerData)
-              → WorkflowEngine.execute()
-                → Find trigger nodes
-                → BFS: for each node
-                  → Gather inputs from incoming edges
-                  → Execute node handler
-                  → Store outputs in context variables
-                  → Follow outgoing edges (with condition checks)
-                  → Emit events per node (started, completed)
-              ← WorkflowExecution result
-            ← JSON execution result
-```
+<img src="/diagrams/workflow-execution-flow.png" alt="Workflow Execution Flow" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
 
 ### Real-time WebSocket Flow
 
-```
-Client connects → ws://localhost:3001/ws
-Server bridges EventBus → WebSocket
-
-Events forwarded to clients:
-  - agent:response
-  - tool:started / tool:completed / tool:failed
-  - workflow:started / workflow:completed
-  - workflow:node:started / workflow:node:completed
-  - skill:activated / skill:deactivated
-
-Client can also send:
-  - { type: "chat", sessionId, message } → Agent.chat()
-  - { type: "workflow:execute", workflowId, triggerData } → Agent.runWorkflow()
-```
+<img src="/diagrams/websocket-flow.png" alt="WebSocket Real-time Event Flow" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
 
 ## Type System
 
@@ -232,26 +155,7 @@ All shared types are defined in `@xclaw/shared` (`packages/shared/src/types/inde
 
 ## Frontend Architecture
 
-```
-React App (Vite + React 19)
-├── Stores (Zustand 5)
-│   ├── useWorkflowStore — Nodes, edges, selection, CRUD
-│   ├── useChatStore     — Messages, sessionId, loading state
-│   └── useAppStore      — Current view, sidebar state
-│
-├── Views
-│   ├── ChatPanel         — AI conversation interface
-│   ├── WorkflowCanvas    — React Flow drag-and-drop canvas
-│   │   ├── NodePalette   — Draggable node types sidebar
-│   │   ├── WorkflowNode  — Custom React Flow node component
-│   │   └── NodePropertiesPanel — Selected node config editor
-│   ├── SkillsPanel       — Skill activation management
-│   ├── HealthDashboard   — Healthcare metrics overview
-│   └── Settings          — Agent + LLM configuration
-│
-└── Utils
-    └── api.ts — REST API client (fetch wrapper)
-```
+<img src="/diagrams/frontend-architecture.png" alt="Frontend Architecture" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
 
 ## Security Model
 

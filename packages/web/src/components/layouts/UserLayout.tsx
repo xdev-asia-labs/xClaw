@@ -10,13 +10,15 @@ import { KnowledgeBase } from '@/components/knowledge/KnowledgeBase';
 import { ApiKeyManager } from '@/components/admin/ApiKeyManager';
 import { MyLearning } from '@/components/doctor/MyLearning';
 import { AgentHub } from '@/components/agent-hub/AgentHub';
+import { SkillHub } from '@/components/skill-hub/SkillHub';
 import {
-    MessageSquare, Database, Key, LogOut, Brain, Store,
+    MessageSquare, Database, Key, LogOut, Brain, Store, Puzzle,
 } from 'lucide-react';
 
 const USER_NAV = [
     { id: 'chat', label: 'Chat', icon: MessageSquare },
     { id: 'agent-hub', label: 'Agent Hub', icon: Store },
+    { id: 'skill-hub', label: 'Skill Hub', icon: Puzzle },
     { id: 'knowledge', label: 'Knowledge', icon: Database },
     { id: 'my-learning', label: 'My Learning', icon: Brain },
     { id: 'api-keys', label: 'API Keys', icon: Key },
@@ -84,6 +86,7 @@ export function UserLayout() {
             <main className="flex-1 flex flex-col overflow-hidden">
                 {currentView === 'chat' && <ChatPanel />}
                 {currentView === 'agent-hub' && <AgentHub />}
+                {currentView === 'skill-hub' && <SkillHub />}
                 {currentView === 'knowledge' && <KnowledgeBase />}
                 {currentView === 'my-learning' && <MyLearning />}
                 {currentView === 'api-keys' && <ApiKeyManager />}

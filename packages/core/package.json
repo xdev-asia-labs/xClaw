@@ -4,13 +4,21 @@
     "type": "module",
     "description": "Core AI agent engine for xClaw — LLM router, memory, tools, skills, and workflow engine",
     "license": "MIT",
-    "homepage": "https://ai.xdev.asia",
+    "homepage": "https://xclaw.xdev.asia",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/tdduydev/xClaw.git",
         "directory": "packages/core"
     },
-    "keywords": ["xclaw", "ai", "agent", "llm", "tools", "skills", "workflow"],
+    "keywords": [
+        "xclaw",
+        "ai",
+        "agent",
+        "llm",
+        "tools",
+        "skills",
+        "workflow"
+    ],
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "exports": {
@@ -19,7 +27,14 @@
             "types": "./dist/index.d.ts"
         }
     },
-    "files": ["dist", "README.md"],
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch"

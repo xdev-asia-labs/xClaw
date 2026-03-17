@@ -20,6 +20,7 @@ import { AuditLog } from '@/components/admin/AuditLog';
 import { Analytics } from '@/components/admin/Analytics';
 import { MCPPanel } from '@/components/admin/MCPPanel';
 import { AgentHub } from '@/components/agent-hub/AgentHub';
+import { SkillHub } from '@/components/skill-hub/SkillHub';
 import { DataQualityOverview } from '@/components/admin/DataQualityOverview';
 import { DoctorProfiles } from '@/components/admin/DoctorProfiles';
 import { LearningDataReview } from '@/components/admin/LearningDataReview';
@@ -55,6 +56,7 @@ const NAV_SECTIONS: NavSection[] = [
         title: 'OPERATIONS',
         items: [
             { id: 'agent-hub', label: 'Agent Hub', icon: Store, badge: 'NEW' },
+            { id: 'skill-hub', label: 'Skill Hub', icon: Puzzle, badge: 'NEW' },
             { id: 'chat', label: 'Chat Console', icon: MessageSquare },
             { id: 'knowledge', label: 'Knowledge Base', icon: Database },
             { id: 'workflows', label: 'Workflows', icon: Workflow },
@@ -92,6 +94,7 @@ const VIEW_TITLES: Record<string, { title: string; subtitle: string }> = {
     analytics: { title: 'Analytics', subtitle: 'Usage statistics and insights' },
     chat: { title: 'Chat Console', subtitle: 'AI conversation interface' },
     'agent-hub': { title: 'Agent Hub', subtitle: 'Browse & install AI agents' },
+    'skill-hub': { title: 'Skill Hub', subtitle: 'Browse, import & manage skills marketplace' },
     knowledge: { title: 'Knowledge Base', subtitle: 'Document collections and RAG' },
     workflows: { title: 'Workflows', subtitle: 'Automation pipeline builder' },
     skills: { title: 'Skills & Tools', subtitle: 'Manage agent capabilities' },
@@ -303,6 +306,7 @@ export function AdminLayout() {
                 <main className="flex-1 flex flex-col overflow-hidden">
                     {currentView === 'chat' && <ChatPanel />}
                     {currentView === 'agent-hub' && <AgentHub />}
+                    {currentView === 'skill-hub' && <SkillHub />}
                     {currentView === 'knowledge' && <KnowledgeBase />}
                     {currentView === 'api-keys' && <ApiKeyManager />}
                     {currentView === 'workflows' && <WorkflowCanvas />}

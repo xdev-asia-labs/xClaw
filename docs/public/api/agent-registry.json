@@ -1,0 +1,555 @@
+{
+    "version": "0.2.0",
+    "updatedAt": "2026-03-17T00:00:00.000Z",
+    "registry": "https://registry.npmjs.org",
+    "homepage": "https://xclaw.xdev.asia",
+    "agents": [
+        {
+            "id": "programming",
+            "name": "Programming & DevOps",
+            "package": "@xclaw/skills",
+            "description": "Code generation, execution, Git, testing, and development tools",
+            "longDescription": "Full-stack development assistant with shell execution, file management, Git operations, test runner auto-detection, code search with regex, and project structure analysis.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "programming",
+            "icon": "Code2",
+            "color": "#3b82f6",
+            "tags": [
+                "code",
+                "git",
+                "devops",
+                "testing",
+                "ci-cd"
+            ],
+            "toolCount": 11,
+            "tools": [
+                {
+                    "name": "shell_exec",
+                    "description": "Execute shell commands safely"
+                },
+                {
+                    "name": "file_read",
+                    "description": "Read file contents"
+                },
+                {
+                    "name": "file_write",
+                    "description": "Write content to files"
+                },
+                {
+                    "name": "file_list",
+                    "description": "List directory contents"
+                },
+                {
+                    "name": "git_status",
+                    "description": "Get git repository status"
+                },
+                {
+                    "name": "git_diff",
+                    "description": "View staged/unstaged changes"
+                },
+                {
+                    "name": "git_commit",
+                    "description": "Create git commits"
+                },
+                {
+                    "name": "git_log",
+                    "description": "View commit history"
+                },
+                {
+                    "name": "run_tests",
+                    "description": "Auto-detect and run test suites"
+                },
+                {
+                    "name": "code_search",
+                    "description": "Search code with grep/ripgrep"
+                },
+                {
+                    "name": "project_analyze",
+                    "description": "Analyze project structure"
+                }
+            ],
+            "featured": true,
+            "isBuiltIn": true,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "healthcare",
+            "name": "Healthcare Assistant",
+            "package": "@xclaw/skills",
+            "description": "Symptom analysis, medication management, health metrics, and clinical notes",
+            "longDescription": "Comprehensive healthcare AI assistant with symptom analysis, drug interaction checking, medication scheduling, health metrics tracking, appointment management, medical records, and clinical note generation.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "healthcare",
+            "icon": "HeartPulse",
+            "color": "#ef4444",
+            "tags": [
+                "health",
+                "medical",
+                "symptoms",
+                "medications"
+            ],
+            "toolCount": 11,
+            "tools": [
+                {
+                    "name": "symptom_analyze",
+                    "description": "Analyze symptoms and suggest conditions"
+                },
+                {
+                    "name": "medication_check_interaction",
+                    "description": "Check drug interactions"
+                },
+                {
+                    "name": "medication_schedule",
+                    "description": "Create medication schedules"
+                },
+                {
+                    "name": "health_metrics_log",
+                    "description": "Log health measurements"
+                },
+                {
+                    "name": "health_metrics_query",
+                    "description": "Query health data trends"
+                },
+                {
+                    "name": "appointment_manage",
+                    "description": "Manage appointments"
+                },
+                {
+                    "name": "medical_record",
+                    "description": "Access medical records"
+                },
+                {
+                    "name": "health_report",
+                    "description": "Generate health reports"
+                },
+                {
+                    "name": "clinical_note",
+                    "description": "Create clinical notes"
+                },
+                {
+                    "name": "icd_lookup",
+                    "description": "Lookup ICD diagnostic codes"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": true,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "data-analytics",
+            "name": "Data Analytics",
+            "package": "@xclaw/skills",
+            "description": "Query data, transform datasets, generate charts, and create reports",
+            "longDescription": "Powerful data analytics agent that can execute SQL-like queries on datasets, transform and clean data, generate visualization charts, create comprehensive reports, parse CSV/JSON files, and compute statistical summaries.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "analytics",
+            "icon": "BarChart3",
+            "color": "#8b5cf6",
+            "tags": [
+                "data",
+                "analytics",
+                "charts",
+                "reports",
+                "sql",
+                "csv"
+            ],
+            "toolCount": 6,
+            "tools": [
+                {
+                    "name": "data_query",
+                    "description": "Execute SQL-like queries on datasets"
+                },
+                {
+                    "name": "data_transform",
+                    "description": "Transform, filter, and clean data"
+                },
+                {
+                    "name": "chart_generate",
+                    "description": "Generate data visualization charts"
+                },
+                {
+                    "name": "report_create",
+                    "description": "Create formatted analysis reports"
+                },
+                {
+                    "name": "csv_parse",
+                    "description": "Parse and analyze CSV/JSON files"
+                },
+                {
+                    "name": "stats_summary",
+                    "description": "Compute statistical summaries"
+                }
+            ],
+            "featured": true,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "devops",
+            "name": "DevOps Engineer",
+            "package": "@xclaw/skills",
+            "description": "Docker management, CI/CD pipelines, log analysis, and infrastructure monitoring",
+            "longDescription": "DevOps automation agent for managing Docker containers, triggering CI/CD pipelines, analyzing application logs, checking deployment status, monitoring infrastructure health, and managing environment configurations.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "devops",
+            "icon": "GitBranch",
+            "color": "#f59e0b",
+            "tags": [
+                "docker",
+                "ci-cd",
+                "deploy",
+                "monitoring",
+                "logs"
+            ],
+            "toolCount": 6,
+            "tools": [
+                {
+                    "name": "docker_manage",
+                    "description": "Manage Docker containers and images"
+                },
+                {
+                    "name": "ci_trigger",
+                    "description": "Trigger and monitor CI/CD pipelines"
+                },
+                {
+                    "name": "log_analyze",
+                    "description": "Analyze application and system logs"
+                },
+                {
+                    "name": "deploy_status",
+                    "description": "Check deployment status and health"
+                },
+                {
+                    "name": "infra_check",
+                    "description": "Monitor infrastructure resources"
+                },
+                {
+                    "name": "env_manage",
+                    "description": "Manage environment configurations"
+                }
+            ],
+            "featured": true,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "content-writer",
+            "name": "Content Writer",
+            "package": "@xclaw/skills",
+            "description": "Generate articles, SEO analysis, translation, summarization, and proofreading",
+            "longDescription": "AI-powered content creation agent that generates blog posts, articles, and social media content. Includes SEO analysis, multi-language translation, text summarization, and grammar/style proofreading capabilities.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "content",
+            "icon": "FileText",
+            "color": "#10b981",
+            "tags": [
+                "content",
+                "seo",
+                "writing",
+                "translate",
+                "blog"
+            ],
+            "toolCount": 5,
+            "tools": [
+                {
+                    "name": "content_generate",
+                    "description": "Generate articles, blogs, social posts"
+                },
+                {
+                    "name": "seo_analyze",
+                    "description": "Analyze content for SEO optimization"
+                },
+                {
+                    "name": "text_summarize",
+                    "description": "Summarize long texts and documents"
+                },
+                {
+                    "name": "translate_text",
+                    "description": "Translate text between languages"
+                },
+                {
+                    "name": "proofread",
+                    "description": "Check grammar, style, and clarity"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "research",
+            "name": "Research Agent",
+            "package": "@xclaw/skills",
+            "description": "Web search, data collection, fact-checking, and research report generation",
+            "longDescription": "Intelligent research assistant that can search the web, scrape and collect data from websites, compare information from multiple sources, verify facts, and compile comprehensive research reports.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "research",
+            "icon": "Globe",
+            "color": "#06b6d4",
+            "tags": [
+                "research",
+                "search",
+                "web",
+                "reports",
+                "fact-check"
+            ],
+            "toolCount": 5,
+            "tools": [
+                {
+                    "name": "web_search",
+                    "description": "Search the web for information"
+                },
+                {
+                    "name": "web_scrape",
+                    "description": "Extract data from web pages"
+                },
+                {
+                    "name": "compare_data",
+                    "description": "Compare data from multiple sources"
+                },
+                {
+                    "name": "fact_check",
+                    "description": "Verify claims and check facts"
+                },
+                {
+                    "name": "research_report",
+                    "description": "Generate structured research reports"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "sales-crm",
+            "name": "Sales & CRM",
+            "package": "@xclaw/skills",
+            "description": "Lead management, email outreach, pipeline tracking, and sales analytics",
+            "longDescription": "Sales automation agent for managing customer relationships, composing personalized outreach emails, scoring leads with AI, generating pipeline reports, and scheduling follow-up activities.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "sales",
+            "icon": "DollarSign",
+            "color": "#ec4899",
+            "tags": [
+                "sales",
+                "crm",
+                "leads",
+                "email",
+                "pipeline"
+            ],
+            "toolCount": 5,
+            "tools": [
+                {
+                    "name": "crm_search",
+                    "description": "Search and query CRM records"
+                },
+                {
+                    "name": "email_compose",
+                    "description": "Compose personalized outreach emails"
+                },
+                {
+                    "name": "lead_score",
+                    "description": "AI-powered lead scoring"
+                },
+                {
+                    "name": "pipeline_report",
+                    "description": "Generate sales pipeline reports"
+                },
+                {
+                    "name": "schedule_followup",
+                    "description": "Schedule follow-up activities"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "project-manager",
+            "name": "Project Manager",
+            "package": "@xclaw/skills",
+            "description": "Task tracking, sprint planning, progress reports, and risk assessment",
+            "longDescription": "AI project management assistant that creates and tracks tasks, plans sprint cycles, generates progress reports, summarizes standup meetings, and assesses project risks with mitigation strategies.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "project-management",
+            "icon": "Briefcase",
+            "color": "#f97316",
+            "tags": [
+                "project",
+                "tasks",
+                "sprint",
+                "agile",
+                "planning"
+            ],
+            "toolCount": 5,
+            "tools": [
+                {
+                    "name": "task_create",
+                    "description": "Create and assign project tasks"
+                },
+                {
+                    "name": "sprint_plan",
+                    "description": "Plan sprint cycles and backlog"
+                },
+                {
+                    "name": "progress_report",
+                    "description": "Generate progress reports"
+                },
+                {
+                    "name": "standup_summary",
+                    "description": "Summarize standup meetings"
+                },
+                {
+                    "name": "risk_assess",
+                    "description": "Assess and track project risks"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "learning",
+            "name": "Learning & Training",
+            "package": "@xclaw/skills",
+            "description": "Quiz generation, flashcards, curriculum planning, and study recommendations",
+            "longDescription": "Educational AI agent that generates quizzes from content, creates flashcard sets, plans learning curricula, tracks study progress, and recommends personalized study strategies.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "learning",
+            "icon": "GraduationCap",
+            "color": "#a855f7",
+            "tags": [
+                "learning",
+                "quiz",
+                "flashcards",
+                "education",
+                "training"
+            ],
+            "toolCount": 5,
+            "tools": [
+                {
+                    "name": "quiz_generate",
+                    "description": "Generate quizzes from content"
+                },
+                {
+                    "name": "flashcard_create",
+                    "description": "Create study flashcard sets"
+                },
+                {
+                    "name": "curriculum_plan",
+                    "description": "Plan learning curricula"
+                },
+                {
+                    "name": "progress_track",
+                    "description": "Track learning progress"
+                },
+                {
+                    "name": "study_recommend",
+                    "description": "Recommend study strategies"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "finance",
+            "name": "Finance & Accounting",
+            "package": "@xclaw/skills",
+            "description": "Budget tracking, invoicing, expense reports, tax calculation, and forecasting",
+            "longDescription": "Financial management agent for tracking budgets, creating invoices, generating expense reports, calculating taxes, and producing financial forecasts with trend analysis.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "finance",
+            "icon": "DollarSign",
+            "color": "#22c55e",
+            "tags": [
+                "finance",
+                "budget",
+                "invoice",
+                "tax",
+                "accounting"
+            ],
+            "toolCount": 5,
+            "tools": [
+                {
+                    "name": "budget_track",
+                    "description": "Track and manage budgets"
+                },
+                {
+                    "name": "invoice_create",
+                    "description": "Create and send invoices"
+                },
+                {
+                    "name": "expense_report",
+                    "description": "Generate expense reports"
+                },
+                {
+                    "name": "tax_calculate",
+                    "description": "Calculate taxes and deductions"
+                },
+                {
+                    "name": "financial_forecast",
+                    "description": "Generate financial forecasts"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        },
+        {
+            "id": "design",
+            "name": "Design Assistant",
+            "package": "@xclaw/skills",
+            "description": "Color palettes, UI mockups, icon suggestions, layout analysis, and design systems",
+            "longDescription": "Creative design assistant that generates color palettes, creates UI mockup descriptions, suggests icons, analyzes layout structures, and checks design system compliance.",
+            "version": "0.2.0",
+            "author": "xClaw",
+            "category": "design",
+            "icon": "Palette",
+            "color": "#f43f5e",
+            "tags": [
+                "design",
+                "ui",
+                "ux",
+                "colors",
+                "mockup"
+            ],
+            "toolCount": 5,
+            "tools": [
+                {
+                    "name": "color_palette",
+                    "description": "Generate harmonious color palettes"
+                },
+                {
+                    "name": "ui_mockup",
+                    "description": "Create UI mockup descriptions"
+                },
+                {
+                    "name": "icon_suggest",
+                    "description": "Suggest icons for concepts"
+                },
+                {
+                    "name": "layout_analyze",
+                    "description": "Analyze UI layout structure"
+                },
+                {
+                    "name": "design_system_check",
+                    "description": "Check design system compliance"
+                }
+            ],
+            "featured": false,
+            "isBuiltIn": false,
+            "minVersion": "0.1.0"
+        }
+    ]
+}

@@ -6,8 +6,8 @@ hero:
   text: AI Agent Platform
   tagline: Open-source, pluggable skills, visual workflows, multi-LLM support — build and deploy AI agents in minutes.
   image:
-    src: /logo.svg
-    alt: xClaw Logo
+    src: /logo.png
+    alt: xClaw — AI Crab with Multiple Agent Arms
   actions:
     - theme: brand
       text: Get Started →
@@ -48,7 +48,7 @@ features:
 :root {
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);
-  --vp-home-hero-image-background-image: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(6, 182, 212, 0.3) 50%, rgba(16, 185, 129, 0.3) 100%);
-  --vp-home-hero-image-filter: blur(68px);
+  --vp-home-hero-image-background-image: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(6, 182, 212, 0.3) 40%, rgba(16, 185, 129, 0.2) 70%, transparent 100%);
+  --vp-home-hero-image-filter: blur(56px);
 }
 </style>

@@ -21,6 +21,7 @@ import { ChannelManager } from './channel-manager.js';
 import { AuthService } from './auth-service.js';
 import { ReportService } from './report-service.js';
 import { DoctorDataService } from './doctor-data-service.js';
+import { SkillHubService } from '@xclaw/skill-hub';
 import PDFDocument from 'pdfkit';
 import type { AuthUser } from './auth-service.js';
 
@@ -45,6 +46,7 @@ export class Gateway {
   readonly auth: AuthService;
   readonly reports: ReportService;
   readonly doctorData: DoctorDataService;
+  readonly skillHub: SkillHubService;
 
   private agent: Agent;
   private config: GatewayConfig;
@@ -75,6 +77,8 @@ export class Gateway {
     this.auth = new AuthService(this.pgPool);
     this.reports = new ReportService(this.pgPool);
     this.doctorData = new DoctorDataService(this.pgPool);
+    this.skillHub = new SkillHubService({ githubToken: process.env.GITHUB_TOKEN });
+    this.skillHub.setSkillManager(this.agent.skills);
 
     this.sessions = new SessionManager(
       this.config.sessionTimeout,
@@ -310,6 +314,51 @@ export class Gateway {
         channels: this.channels.getAll().map(c => c.platform),
         uptime: process.uptime(),
       });
+    });
+
+    // ── Version check endpoint ────────────────────────────
+    app.get('/api/version', (_req, res) => {
+      const pkg = { version: '0.2.0' }; // from package.json at build
+      res.json({ version: pkg.version });
+    });
+
+    app.get('/api/version/check', async (_req, res) => {
+      try {
+        const currentVersion = '0.2.0';
+        const remote = await fetch('https://xclaw.xdev.asia/api/versions.json');
+        if (!remote.ok) { res.status(502).json({ error: 'Cannot reach version server' }); return; }
+        const info = await remote.json() as Record<string, unknown>;
+        const latest = String(info.latest ?? currentVersion);
+        const minimum = String(info.minimum ?? '0.0.0');
+        const cmp = (a: string, b: string) => {
+          const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+          for (let i = 0; i < 3; i++) { if ((pa[i]??0) < (pb[i]??0)) return -1; if ((pa[i]??0) > (pb[i]??0)) return 1; }
+          return 0;
+        };
+        res.json({
+          currentVersion,
+          latestVersion: latest,
+          hasUpdate: cmp(currentVersion, latest) < 0,
+          isOutdated: cmp(currentVersion, minimum) < 0,
+          releaseNotes: info.releaseNotes ?? '',
+          changelog: info.changelog ?? '',
+          updateCommand: info.updateCommand ?? '',
+        });
+      } catch (err) {
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Version check failed' });
+      }
+    });
+
+    // ── Agent registry proxy ──────────────────────────────
+    app.get('/api/agent-registry', async (_req, res) => {
+      try {
+        const remote = await fetch('https://xclaw.xdev.asia/api/agent-registry.json');
+        if (!remote.ok) { res.status(502).json({ error: 'Cannot reach registry' }); return; }
+        const registry = await remote.json();
+        res.json(registry);
+      } catch (err) {
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Registry fetch failed' });
+      }
     });
 
     // ── Feedback endpoint ─────────────────────────────────
@@ -1347,6 +1396,151 @@ export class Gateway {
           },
         });
       } catch (err) { res.status(500).json({ error: String(err) }); }
+    });
+
+    // ── SkillHub marketplace routes ────────────────────────
+
+    // Search / list skills
+    app.get('/api/hub/skills', async (req, res) => {
+      try {
+        const params = {
+          query: req.query.q as string | undefined,
+          category: req.query.category as string | undefined,
+          source: req.query.source as string | undefined,
+          tags: req.query.tags ? String(req.query.tags).split(',') : undefined,
+          sortBy: (req.query.sortBy as 'featured' | 'popular' | 'recent' | 'rating' | 'name') ?? 'featured',
+          page: req.query.page ? Number(req.query.page) : 1,
+          pageSize: req.query.pageSize ? Number(req.query.pageSize) : 20,
+        };
+        const result = await this.skillHub.search(params);
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Search failed' }); }
+    });
+
+    // Get skill detail
+    app.get('/api/hub/skills/:id(*)', async (req, res) => {
+      try {
+        const skill = await this.skillHub.getSkill(req.params.id);
+        if (!skill) return res.status(404).json({ error: 'Skill not found' });
+        res.json(skill);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    // Get reviews for a skill
+    app.get('/api/hub/skills/:id(*)/reviews', async (req, res) => {
+      try {
+        const reviews = await this.skillHub.getReviews(req.params.id);
+        res.json({ reviews });
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    // Install skill from registry
+    app.post('/api/hub/skills/:id(*)/install', async (req, res) => {
+      try {
+        const result = await this.skillHub.installSkill(req.params.id);
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Install failed' }); }
+    });
+
+    // Uninstall skill
+    app.delete('/api/hub/skills/:id(*)/uninstall', async (req, res) => {
+      try {
+        const result = await this.skillHub.uninstallSkill(req.params.id);
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Uninstall failed' }); }
+    });
+
+    // Add review
+    app.post('/api/hub/skills/:id(*)/reviews', async (req, res) => {
+      try {
+        const { rating, comment, author } = req.body;
+        const review = await this.skillHub.addReview(req.params.id, rating, comment, author);
+        res.json(review);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    // Featured & trending
+    app.get('/api/hub/featured', async (_req, res) => {
+      try {
+        const skills = await this.skillHub.getFeatured();
+        res.json({ skills });
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    app.get('/api/hub/trending', async (_req, res) => {
+      try {
+        const skills = await this.skillHub.getTrending();
+        res.json({ skills });
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    app.get('/api/hub/stats', async (_req, res) => {
+      try {
+        const stats = await this.skillHub.getStats();
+        res.json(stats);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    // Anthropic import
+    app.get('/api/hub/import/anthropic', async (_req, res) => {
+      try {
+        const skills = await this.skillHub.listAnthropicSkills();
+        res.json({ skills });
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    app.post('/api/hub/import/anthropic/sync', async (_req, res) => {
+      try {
+        const result = await this.skillHub.importAllAnthropicSkills();
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Sync failed' }); }
+    });
+
+    app.post('/api/hub/import/anthropic/:name', async (req, res) => {
+      try {
+        const result = await this.skillHub.importAnthropicSkill(req.params.name);
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Import failed' }); }
+    });
+
+    // MCP import
+    app.post('/api/hub/import/mcp', async (req, res) => {
+      try {
+        const result = await this.skillHub.importMcpServer(req.body.packageName);
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Import failed' }); }
+    });
+
+    // Skill submission (community)
+    app.post('/api/hub/submit', async (req, res) => {
+      try {
+        const { manifest, author, readme } = req.body;
+        const result = await this.skillHub.submitSkill(manifest, author, readme);
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Submission failed' }); }
+    });
+
+    app.get('/api/hub/submissions', async (_req, res) => {
+      try {
+        const submissions = await this.skillHub.getPendingSubmissions();
+        res.json({ submissions });
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
+    });
+
+    app.patch('/api/hub/submissions/:id', async (req, res) => {
+      try {
+        const { action, reviewer, feedback } = req.body;
+        const result = await this.skillHub.reviewSubmission(req.params.id, action, reviewer, feedback);
+        res.json(result);
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Review failed' }); }
+    });
+
+    // Check for updates
+    app.get('/api/hub/updates', async (_req, res) => {
+      try {
+        const updates = await this.skillHub.checkForUpdates();
+        res.json({ updates });
+      } catch (err) { res.status(500).json({ error: err instanceof Error ? err.message : 'Failed' }); }
     });
   }
 

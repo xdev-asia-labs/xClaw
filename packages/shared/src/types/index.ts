@@ -441,3 +441,129 @@ export type PluginPermission =
   | 'memory'         // Memory access
   | 'llm'            // LLM API calls
   | 'secrets';       // Access to secrets/API keys
+
+// ─── SkillHub Types (Marketplace) ───────────────────────────
+
+export type SkillSource = 'built-in' | 'anthropic' | 'community' | 'npm' | 'mcp' | 'partner';
+
+export interface HubAuthor {
+  name: string;
+  email?: string;
+  url?: string;
+  avatar?: string;
+  verified: boolean;
+}
+
+export interface HubSkillStats {
+  installs: number;
+  activeInstalls: number;
+  rating: number;
+  reviewCount: number;
+  weeklyDownloads: number;
+}
+
+export interface HubDistribution {
+  type: 'registry' | 'npm' | 'git' | 'file';
+  url?: string;
+  checksum?: string;
+  size?: number;
+  tarball?: string;
+}
+
+export interface HubSkillEntry {
+  id: string;
+  name: string;
+  slug: string;
+  version: string;
+  description: string;
+  longDescription?: string;
+  author: HubAuthor;
+  license: string;
+  category: SkillCategory;
+  tags: string[];
+  source: SkillSource;
+  manifest: SkillManifest;
+  readme?: string;
+  changelog?: string;
+  skillMd?: string;
+  stats: HubSkillStats;
+  distribution: HubDistribution;
+  compatible: boolean;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface SkillReview {
+  id: string;
+  skillId: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  title: string;
+  body: string;
+  createdAt: string;
+  helpful: number;
+}
+
+export type SubmissionStatus = 'pending' | 'reviewing' | 'approved' | 'rejected' | 'needs-changes';
+
+export interface SkillSubmission {
+  id: string;
+  skillId: string;
+  version: string;
+  submittedBy: HubAuthor;
+  status: SubmissionStatus;
+  reviewNotes?: string;
+  securityScanResult?: SecurityScanResult;
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}
+
+export interface SecurityScanResult {
+  passed: boolean;
+  score: number;
+  issues: SecurityIssue[];
+}
+
+export interface SecurityIssue {
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  type: string;
+  message: string;
+  file?: string;
+  line?: number;
+}
+
+/** Parsed Anthropic SKILL.md format */
+export interface AnthropicSkill {
+  name: string;
+  description: string;
+  allowedTools?: string[];
+  instructions: string;
+  examples?: string;
+  sourceCommitSha?: string;
+  sourceRepoUrl: string;
+  folderPath: string;
+}
+
+export interface HubSearchParams {
+  search?: string;
+  category?: SkillCategory;
+  source?: SkillSource;
+  tags?: string[];
+  author?: string;
+  minRating?: number;
+  sort?: 'featured' | 'popular' | 'recent' | 'rating' | 'name';
+  page?: number;
+  limit?: number;
+}
+
+export interface HubSearchResult {
+  skills: HubSkillEntry[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}

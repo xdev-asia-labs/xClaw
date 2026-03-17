@@ -64,50 +64,9 @@ The engine supports 16 node types across 6 categories:
 
 ## Execution Algorithm
 
-### 1. Initialization
+### BFS Execution Algorithm
 
-```
-execute(workflow, triggerData?)
-├── Create WorkflowExecution (id, status='running', variables)
-├── Initialize variables from workflow.variables defaults
-├── Set _trigger = triggerData
-├── Create WorkflowContext (execution, variables, services)
-├── Emit 'workflow:started' event
-└── Find trigger nodes → start BFS
-```
-
-### 2. BFS Traversal
-
-```
-executeFromNodes(nodes, workflow, context)
-├── For each node:
-│   ├── Check if execution is cancelled → return
-│   ├── Gather inputs from incoming edges
-│   │   └── For each incoming edge:
-│   │       └── Read source node's output from context.variables[sourceId.portId]
-│   ├── Execute node handler
-│   │   ├── Find handler for node.type
-│   │   ├── Emit 'workflow:node:started'
-│   │   ├── Call handler(node, inputs, context)
-│   │   ├── Store result in execution.nodeResults
-│   │   └── If failed → throw error
-│   ├── Store outputs in context.variables[nodeId.key]
-│   ├── Find outgoing edges
-│   │   └── For each edge:
-│   │       ├── If edge has condition → evaluate it
-│   │       ├── If condition met (or no condition) → add target to next nodes
-│   │       └── If condition not met → skip
-│   └── Recurse: executeFromNodes(nextNodes, workflow, context)
-```
-
-### 3. Completion
-
-```
-├── If all nodes succeed → status = 'completed'
-├── If any node throws → status = 'failed', error = message
-├── Emit 'workflow:completed' event
-└── Return WorkflowExecution result
-```
+<img src="/diagrams/bfs-execution.png" alt="Workflow BFS Execution Algorithm" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
 
 ## Template Resolution
 
@@ -154,15 +113,7 @@ Condition nodes and conditional edges use JavaScript expressions evaluated again
 
 Data flows through the workflow via edges. Each edge connects a source node's output port to a target node's input port.
 
-```
-[Node A] ──output_port──→ ──input_port──→ [Node B]
-```
-
-When Node B executes:
-1. Engine finds all incoming edges to Node B
-2. For each edge, reads `context.variables[sourceNodeId.sourcePortId]`
-3. Maps it to `inputs[targetPortId]`
-4. Passes the collected `inputs` object to Node B's handler
+<img src="/diagrams/data-flow-nodes.png" alt="Data Flow Between Nodes" style="max-width: 100%; border-radius: 12px; margin: 16px 0;" />
 
 ## Built-in Handler Implementations
 

@@ -13,3 +13,5 @@ export type { SkillPlugin, SkillContext } from './skills/skill-manager.js';
 export type { MemoryStore } from './memory/memory-manager.js';
 export { PluginLoader } from './plugins/plugin-loader.js';
 export type { LoadedPlugin, LoadedKnowledgePack, LoadedDataSource } from './plugins/plugin-loader.js';
+export { checkForUpdates, fetchAgentRegistry, fetchAgentRegistryFrom } from './version-checker.js';
+export type { VersionInfo, VersionCheckResult, AgentRegistryEntry, AgentRegistry } from './version-checker.js';

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { api } from '@/utils/api';
 import { PageHeader, Badge, Button } from '@/components/ui';
 import {
@@ -7,7 +7,7 @@ import {
     Globe, DollarSign, Briefcase, GraduationCap, Palette,
     HeartPulse, Code2, Bot, Sparkles, Check, ExternalLink,
     Filter, Grid3X3, List, Settings, Plus, ArrowDownAZ,
-    TrendingUp, SortAsc,
+    TrendingUp, SortAsc, ArrowUpCircle, AlertTriangle, RefreshCw,
 } from 'lucide-react';
 import { SkillStudio } from './SkillStudio';
 import { StoreInstallModal } from './StoreInstallModal';
@@ -306,6 +306,22 @@ const AGENT_REGISTRY: AgentInfo[] = [
 type StoreTab = 'browse' | 'installed';
 type SortBy = 'featured' | 'name' | 'tools';
 
+// Icon map from registry string → lucide component
+const ICON_MAP: Record<string, React.ElementType> = {
+    Code2, HeartPulse, BarChart3, GitBranch, FileText,
+    Globe, DollarSign, Briefcase, GraduationCap, Palette, Bot,
+};
+
+interface UpdateInfo {
+    hasUpdate: boolean;
+    isOutdated: boolean;
+    latestVersion: string;
+    currentVersion: string;
+    releaseNotes: string;
+    changelog: string;
+    updateCommand: string;
+}
+
 export function AgentHub() {
     const [agents, setAgents] = useState<AgentInfo[]>(AGENT_REGISTRY);
     const [search, setSearch] = useState('');
@@ -317,6 +333,59 @@ export function AgentHub() {
     const [sortBy, setSortBy] = useState<SortBy>('featured');
     const [showInstallModal, setShowInstallModal] = useState(false);
     const [configuringAgent, setConfiguringAgent] = useState<AgentInfo | null>(null);
+    const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+    const [updateDismissed, setUpdateDismissed] = useState(false);
+    const [registryLoading, setRegistryLoading] = useState(false);
+
+    // Fetch agent registry from docs API + check for updates
+    useEffect(() => {
+        // Check for version updates
+        api.checkForUpdates().then(info => {
+            if (info.hasUpdate || info.isOutdated) {
+                setUpdateInfo(info);
+            }
+        }).catch(() => { /* offline or unreachable, skip */ });
+
+        // Fetch remote agent registry and merge with local
+        setRegistryLoading(true);
+        api.getAgentRegistry().then(registry => {
+            if (registry?.agents?.length) {
+                setAgents(prev => {
+                    const localIds = new Set(prev.map(a => a.id));
+                    const merged = [...prev];
+                    for (const remote of registry.agents) {
+                        if (!localIds.has(remote.id)) {
+                            // New agent from registry — add it
+                            merged.push({
+                                id: remote.id,
+                                name: remote.name,
+                                description: remote.description,
+                                longDescription: remote.longDescription,
+                                version: remote.version,
+                                author: remote.author,
+                                category: remote.category as AgentCategory,
+                                icon: ICON_MAP[remote.icon] ?? Bot,
+                                color: remote.color,
+                                tags: remote.tags,
+                                toolCount: remote.toolCount,
+                                tools: remote.tools,
+                                status: 'available',
+                                featured: remote.featured,
+                                isBuiltIn: remote.isBuiltIn,
+                            });
+                        } else {
+                            // Existing agent — update version info from registry
+                            const idx = merged.findIndex(a => a.id === remote.id);
+                            if (idx >= 0 && remote.version !== merged[idx].version) {
+                                merged[idx] = { ...merged[idx], version: remote.version };
+                            }
+                        }
+                    }
+                    return merged;
+                });
+            }
+        }).catch(() => { /* offline, use local registry */ }).finally(() => setRegistryLoading(false));
+    }, []);
 
     const filtered = useMemo(() => {
         let list = agents.filter(a => {
@@ -484,26 +553,71 @@ export function AgentHub() {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 py-5">
+                {/* Version update banner */}
+                {updateInfo && !updateDismissed && (
+                    <div className={`mb-4 rounded-xl border p-4 flex items-center justify-between ${updateInfo.isOutdated
+                            ? 'bg-red-500/10 border-red-500/30'
+                            : 'bg-amber-500/10 border-amber-500/30'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                            {updateInfo.isOutdated ? (
+                                <AlertTriangle size={20} className="text-red-400 flex-shrink-0" />
+                            ) : (
+                                <ArrowUpCircle size={20} className="text-amber-400 flex-shrink-0" />
+                            )}
+                            <div>
+                                <p className={`text-sm font-medium ${updateInfo.isOutdated ? 'text-red-300' : 'text-amber-300'}`}>
+                                    {updateInfo.isOutdated
+                                        ? `Phiên bản hiện tại (v${updateInfo.currentVersion}) đã quá cũ. Vui lòng cập nhật lên v${updateInfo.latestVersion}`
+                                        : `Có phiên bản mới v${updateInfo.latestVersion} (hiện tại: v${updateInfo.currentVersion})`
+                                    }
+                                </p>
+                                {updateInfo.releaseNotes && (
+                                    <p className="text-xs text-slate-400 mt-0.5">{updateInfo.releaseNotes}</p>
+                                )}
+                                <code className="text-[11px] text-slate-400 bg-dark-800 px-2 py-0.5 rounded mt-1.5 inline-block font-mono">
+                                    {updateInfo.updateCommand}
+                                </code>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                            {updateInfo.changelog && (
+                                <a
+                                    href={updateInfo.changelog}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-dark-700 text-slate-300 hover:bg-dark-600 hover:text-white transition"
+                                >
+                                    <ExternalLink size={12} /> Changelog
+                                </a>
+                            )}
+                            <button
+                                onClick={() => setUpdateDismissed(true)}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-dark-700 transition"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                    </div>
+                )}
                 {/* Store Tabs + Install button */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-1 bg-dark-800 border border-dark-700 rounded-xl p-1">
                         <button
                             onClick={() => setStoreTab('browse')}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${
-                                storeTab === 'browse'
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${storeTab === 'browse'
                                     ? 'bg-primary-600/20 text-primary-400'
                                     : 'text-slate-400 hover:text-white'
-                            }`}
+                                }`}
                         >
                             <Store size={14} /> Browse
                         </button>
                         <button
                             onClick={() => setStoreTab('installed')}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${
-                                storeTab === 'installed'
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${storeTab === 'installed'
                                     ? 'bg-primary-600/20 text-primary-400'
                                     : 'text-slate-400 hover:text-white'
-                            }`}
+                                }`}
                         >
                             <Download size={14} /> Installed ({stats.installed})
                         </button>
@@ -521,11 +635,10 @@ export function AgentHub() {
                         <button
                             key={cat.id}
                             onClick={() => setCategory(cat.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
-                                category === cat.id
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${category === cat.id
                                     ? 'bg-primary-600/20 text-primary-400 ring-1 ring-primary-500/30'
                                     : 'bg-dark-800 text-slate-400 hover:bg-dark-700 hover:text-slate-200'
-                            }`}
+                                }`}
                         >
                             <cat.icon size={13} />
                             {cat.label}
