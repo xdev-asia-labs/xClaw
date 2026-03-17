@@ -111,6 +111,7 @@ executeFromNodes(nodes, workflow, context)
 
 ## Template Resolution
 
+::: v-pre
 Node configs support template strings that reference variables from the execution context:
 
 ```
@@ -130,6 +131,7 @@ Node configs support template strings that reference variables from the executio
 Prompt: "Analyze this code: {{node_1.result}}"
 → Resolves to: "Analyze this code: function hello() { ... }"
 ```
+:::
 
 ## Condition Evaluation
 
@@ -270,7 +272,7 @@ These events are forwarded to WebSocket clients for live UI updates.
       "data": {
         "label": "Analyze",
         "config": {
-          "prompt": "Analyze: {{node_1.data}}",
+          "prompt": "Analyze: {'{'}{'{'} node_1.data {'}'}{'}'}",
           "systemPrompt": "You are a code reviewer."
         }
       },

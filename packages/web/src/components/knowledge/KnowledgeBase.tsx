@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { api } from '../../utils/api.js';
+import { api } from '@/utils/api';
+import { Modal, ErrorBanner, Spinner, Button } from '@/components/ui';
+import { formatBytes, formatDate } from '@/utils/format';
 import {
     Database, Plus, Trash2, FileText, Globe, Upload,
-    Search, ChevronRight, ChevronDown, FolderOpen,
-    Hash, Layers, Clock, AlertCircle, CheckCircle,
-    Loader2, X, ExternalLink,
+    Search, FolderOpen,
+    Hash, Layers, CheckCircle, AlertCircle,
+    Loader2,
 } from 'lucide-react';
 
 interface KBCollection {
@@ -61,9 +63,10 @@ export function KnowledgeBase() {
     const [newOverlap, setNewOverlap] = useState(50);
 
     // Add document form
-    const [docSource, setDocSource] = useState<'text' | 'url'>('text');
+    const [docSource, setDocSource] = useState<'text' | 'url' | 'file'>('text');
     const [docInput, setDocInput] = useState('');
     const [docName, setDocName] = useState('');
+    const [docFile, setDocFile] = useState<File | null>(null);
     const [docAdding, setDocAdding] = useState(false);
 
     // Search
@@ -133,17 +136,24 @@ export function KnowledgeBase() {
     };
 
     const handleAddDocument = async () => {
-        if (!selectedCollection || !docInput.trim()) return;
+        if (!selectedCollection) return;
+        if (docSource === 'file' && !docFile) return;
+        if (docSource !== 'file' && !docInput.trim()) return;
         try {
             setDocAdding(true);
-            await api.addKBDocument(selectedCollection, {
-                source: docSource,
-                input: docInput.trim(),
-                name: docName.trim() || undefined,
-            });
+            if (docSource === 'file' && docFile) {
+                await api.uploadKBFile(selectedCollection, docFile, docName.trim() || undefined);
+            } else {
+                await api.addKBDocument(selectedCollection, {
+                    source: docSource,
+                    input: docInput.trim(),
+                    name: docName.trim() || undefined,
+                });
+            }
             setModal(null);
             setDocInput('');
             setDocName('');
+            setDocFile(null);
             await loadDocuments(selectedCollection);
             await loadCollections(); // Refresh stats
         } catch (err) {
@@ -181,18 +191,6 @@ export function KnowledgeBase() {
         }
     };
 
-    const formatBytes = (bytes: number) => {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
-    };
-
-    const formatDate = (date: string) => new Date(date).toLocaleDateString('vi-VN', {
-        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
-
     const selectedCol = collections.find(c => c.collectionId === selectedCollection);
 
     return (
@@ -218,14 +216,7 @@ export function KnowledgeBase() {
                 </div>
             </header>
 
-            {/* Error banner */}
-            {error && (
-                <div className="mx-6 mt-3 flex items-center gap-2 px-3 py-2 bg-red-500/10 text-red-400 text-sm rounded-lg">
-                    <AlertCircle size={14} />
-                    <span className="flex-1">{error}</span>
-                    <button onClick={() => setError(null)}><X size={14} /></button>
-                </div>
-            )}
+            {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Left: Collections list */}
@@ -236,7 +227,7 @@ export function KnowledgeBase() {
 
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 size={20} className="animate-spin text-primary-400" />
+                            <Spinner size={20} />
                         </div>
                     ) : collections.length === 0 ? (
                         <div className="px-4 py-8 text-center text-slate-500 text-sm">
@@ -253,8 +244,8 @@ export function KnowledgeBase() {
                                         selectedCollection === col.collectionId ? null : col.collectionId
                                     )}
                                     className={`w-full text-left px-3 py-2.5 rounded-lg transition group ${selectedCollection === col.collectionId
-                                            ? 'bg-primary-600/20 border border-primary-500/30'
-                                            : 'hover:bg-dark-800 border border-transparent'
+                                        ? 'bg-primary-600/20 border border-primary-500/30'
+                                        : 'hover:bg-dark-800 border border-transparent'
                                         }`}
                                 >
                                     <div className="flex items-center gap-2">
@@ -341,7 +332,7 @@ export function KnowledgeBase() {
                             <div className="flex-1 px-6 py-4">
                                 {docsLoading ? (
                                     <div className="flex items-center justify-center py-12">
-                                        <Loader2 size={20} className="animate-spin text-primary-400" />
+                                        <Spinner size={20} />
                                     </div>
                                 ) : documents.length === 0 ? (
                                     <div className="text-center py-12 text-slate-500">
@@ -394,231 +385,229 @@ export function KnowledgeBase() {
             {/* ── Modals ───────────────────────────────────────── */}
 
             {/* Create Collection Modal */}
-            {modal === 'create-collection' && (
-                <Modal title="New Collection" onClose={() => setModal(null)}>
-                    <div className="space-y-4">
+            <Modal open={modal === 'create-collection'} title="New Collection" onClose={() => setModal(null)}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm text-slate-400 mb-1">Name *</label>
+                        <input
+                            type="text"
+                            value={newName}
+                            onChange={e => setNewName(e.target.value)}
+                            className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
+                            placeholder="e.g. Company Docs"
+                            autoFocus
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm text-slate-400 mb-1">Description</label>
+                        <input
+                            type="text"
+                            value={newDesc}
+                            onChange={e => setNewDesc(e.target.value)}
+                            className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
+                            placeholder="What's this collection for?"
+                        />
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Name *</label>
-                            <input
-                                type="text"
-                                value={newName}
-                                onChange={e => setNewName(e.target.value)}
-                                className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                placeholder="e.g. Company Docs"
-                                autoFocus
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Description</label>
-                            <input
-                                type="text"
-                                value={newDesc}
-                                onChange={e => setNewDesc(e.target.value)}
-                                className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                placeholder="What's this collection for?"
-                            />
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                            <div>
-                                <label className="block text-xs text-slate-500 mb-1">Chunk Strategy</label>
-                                <select
-                                    value={newStrategy}
-                                    onChange={e => setNewStrategy(e.target.value)}
-                                    className="w-full px-2 py-1.5 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                >
-                                    <option value="recursive">Recursive</option>
-                                    <option value="sentence">Sentence</option>
-                                    <option value="paragraph">Paragraph</option>
-                                    <option value="fixed">Fixed</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs text-slate-500 mb-1">Max Tokens</label>
-                                <input
-                                    type="number"
-                                    value={newMaxTokens}
-                                    onChange={e => setNewMaxTokens(Number(e.target.value))}
-                                    className="w-full px-2 py-1.5 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                    min={64} max={4096}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs text-slate-500 mb-1">Overlap</label>
-                                <input
-                                    type="number"
-                                    value={newOverlap}
-                                    onChange={e => setNewOverlap(Number(e.target.value))}
-                                    className="w-full px-2 py-1.5 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                    min={0} max={200}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-2 pt-2">
-                            <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition">
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleCreateCollection}
-                                disabled={!newName.trim()}
-                                className="px-4 py-2 text-sm bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition disabled:opacity-50"
+                            <label className="block text-xs text-slate-500 mb-1">Chunk Strategy</label>
+                            <select
+                                value={newStrategy}
+                                onChange={e => setNewStrategy(e.target.value)}
+                                className="w-full px-2 py-1.5 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
                             >
-                                Create Collection
-                            </button>
+                                <option value="recursive">Recursive</option>
+                                <option value="sentence">Sentence</option>
+                                <option value="paragraph">Paragraph</option>
+                                <option value="fixed">Fixed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs text-slate-500 mb-1">Max Tokens</label>
+                            <input
+                                type="number"
+                                value={newMaxTokens}
+                                onChange={e => setNewMaxTokens(Number(e.target.value))}
+                                className="w-full px-2 py-1.5 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
+                                min={64} max={4096}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-slate-500 mb-1">Overlap</label>
+                            <input
+                                type="number"
+                                value={newOverlap}
+                                onChange={e => setNewOverlap(Number(e.target.value))}
+                                className="w-full px-2 py-1.5 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
+                                min={0} max={200}
+                            />
                         </div>
                     </div>
-                </Modal>
-            )}
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition">
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleCreateCollection}
+                            disabled={!newName.trim()}
+                            className="px-4 py-2 text-sm bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition disabled:opacity-50"
+                        >
+                            Create Collection
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Add Document Modal */}
-            {modal === 'add-document' && (
-                <Modal title="Add Document" onClose={() => setModal(null)}>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Source Type</label>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setDocSource('text')}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition ${docSource === 'text' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-slate-400 hover:text-white'
-                                        }`}
-                                >
-                                    <FileText size={14} /> Text / Markdown
-                                </button>
-                                <button
-                                    onClick={() => setDocSource('url')}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition ${docSource === 'url' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-slate-400 hover:text-white'
-                                        }`}
-                                >
-                                    <Globe size={14} /> URL
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">Name (optional)</label>
-                            <input
-                                type="text"
-                                value={docName}
-                                onChange={e => setDocName(e.target.value)}
-                                className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                placeholder="Document name"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-slate-400 mb-1">
-                                {docSource === 'text' ? 'Content *' : 'URL *'}
-                            </label>
-                            {docSource === 'text' ? (
-                                <textarea
-                                    value={docInput}
-                                    onChange={e => setDocInput(e.target.value)}
-                                    className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none h-40 resize-none font-mono"
-                                    placeholder="Paste your text or markdown here..."
-                                />
-                            ) : (
-                                <input
-                                    type="url"
-                                    value={docInput}
-                                    onChange={e => setDocInput(e.target.value)}
-                                    className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                    placeholder="https://example.com/article"
-                                />
-                            )}
-                        </div>
-                        <div className="flex justify-end gap-2 pt-2">
-                            <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition">
-                                Cancel
+            <Modal open={modal === 'add-document'} title="Add Document" onClose={() => setModal(null)}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm text-slate-400 mb-1">Source Type</label>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setDocSource('text')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition ${docSource === 'text' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-slate-400 hover:text-white'
+                                    }`}
+                            >
+                                <FileText size={14} /> Text / Markdown
                             </button>
                             <button
-                                onClick={handleAddDocument}
-                                disabled={!docInput.trim() || docAdding}
-                                className="flex items-center gap-1.5 px-4 py-2 text-sm bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition disabled:opacity-50"
+                                onClick={() => setDocSource('url')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition ${docSource === 'url' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-slate-400 hover:text-white'
+                                    }`}
                             >
-                                {docAdding && <Loader2 size={14} className="animate-spin" />}
-                                {docAdding ? 'Processing...' : 'Add Document'}
+                                <Globe size={14} /> URL
+                            </button>
+                            <button
+                                onClick={() => setDocSource('file')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition ${docSource === 'file' ? 'bg-primary-600 text-white' : 'bg-dark-800 text-slate-400 hover:text-white'
+                                    }`}
+                            >
+                                <Upload size={14} /> Upload File
                             </button>
                         </div>
                     </div>
-                </Modal>
-            )}
+                    <div>
+                        <label className="block text-sm text-slate-400 mb-1">Name (optional)</label>
+                        <input
+                            type="text"
+                            value={docName}
+                            onChange={e => setDocName(e.target.value)}
+                            className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
+                            placeholder="Document name"
+                        />
+                    </div>
+                    <div>
+                        {docSource === 'file' ? (
+                            <>
+                                <label className="block text-sm text-slate-400 mb-1">File *</label>
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-dark-600 rounded-lg cursor-pointer hover:border-primary-500 transition bg-dark-900">
+                                    <Upload size={24} className="text-slate-500 mb-2" />
+                                    <span className="text-sm text-slate-400">{docFile ? docFile.name : 'Click to select file'}</span>
+                                    <span className="text-xs text-slate-600 mt-1">PDF, XLSX, DOCX, CSV, TXT, MD, JSON</span>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        accept=".pdf,.xlsx,.xls,.docx,.csv,.txt,.md,.json,.xml,.html,.yaml,.yml"
+                                        onChange={e => {
+                                            const f = e.target.files?.[0];
+                                            if (f) { setDocFile(f); if (!docName) setDocName(f.name); }
+                                        }}
+                                    />
+                                </label>
+                                {docFile && <p className="text-xs text-slate-500 mt-1">{(docFile.size / 1024).toFixed(1)} KB</p>}
+                            </>
+                        ) : (
+                            <>
+                                <label className="block text-sm text-slate-400 mb-1">
+                                    {docSource === 'text' ? 'Content *' : 'URL *'}
+                                </label>
+                                {docSource === 'text' ? (
+                                    <textarea
+                                        value={docInput}
+                                        onChange={e => setDocInput(e.target.value)}
+                                        className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none h-40 resize-none font-mono"
+                                        placeholder="Paste your text or markdown here..."
+                                    />
+                                ) : (
+                                    <input
+                                        type="url"
+                                        value={docInput}
+                                        onChange={e => setDocInput(e.target.value)}
+                                        className="w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
+                                        placeholder="https://example.com/article"
+                                    />
+                                )}
+                            </>
+                        )}
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition">
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleAddDocument}
+                            disabled={(docSource === 'file' ? !docFile : !docInput.trim()) || docAdding}
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition disabled:opacity-50"
+                        >
+                            {docAdding && <Loader2 size={14} className="animate-spin" />}
+                            {docAdding ? 'Processing...' : 'Add Document'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Search Modal */}
-            {modal === 'search' && (
-                <Modal title="Semantic Search" onClose={() => { setModal(null); setSearchResults([]); }} wide>
-                    <div className="space-y-4">
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                                className="flex-1 px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
-                                placeholder="Search across your knowledge base..."
-                                autoFocus
-                            />
-                            <button
-                                onClick={handleSearch}
-                                disabled={!searchQuery.trim() || searching}
-                                className="flex items-center gap-1.5 px-4 py-2 text-sm bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition disabled:opacity-50"
-                            >
-                                {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-                                Search
-                            </button>
-                        </div>
-
-                        {selectedCollection && (
-                            <p className="text-xs text-slate-500">
-                                Searching in: <span className="text-primary-400">{selectedCol?.name}</span>
-                                {' '}<button onClick={() => setSelectedCollection(null)} className="text-slate-500 hover:text-white">(search all)</button>
-                            </p>
-                        )}
-
-                        {searchResults.length > 0 && (
-                            <div className="space-y-2 max-h-96 overflow-y-auto">
-                                {searchResults.map((result, i) => (
-                                    <div key={i} className="px-4 py-3 bg-dark-800 rounded-lg">
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary-600/30 text-primary-300 text-xs font-bold">
-                                                {i + 1}
-                                            </span>
-                                            <span className="text-xs text-slate-500">Score: {(result.score * 100).toFixed(1)}%</span>
-                                        </div>
-                                        <p className="text-sm text-slate-300 whitespace-pre-wrap line-clamp-4">{result.content}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {searchResults.length === 0 && searchQuery && !searching && (
-                            <p className="text-sm text-slate-500 text-center py-4">No results. Try a different query.</p>
-                        )}
+            <Modal open={modal === 'search'} title="Semantic Search" onClose={() => { setModal(null); setSearchResults([]); }} size="lg">
+                <div className="space-y-4">
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                            className="flex-1 px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white text-sm focus:border-primary-500 focus:outline-none"
+                            placeholder="Search across your knowledge base..."
+                            autoFocus
+                        />
+                        <button
+                            onClick={handleSearch}
+                            disabled={!searchQuery.trim() || searching}
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition disabled:opacity-50"
+                        >
+                            {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                            Search
+                        </button>
                     </div>
-                </Modal>
-            )}
-        </div>
-    );
-}
 
-// ─── Reusable Modal Component ────────────────────────────────
+                    {selectedCollection && (
+                        <p className="text-xs text-slate-500">
+                            Searching in: <span className="text-primary-400">{selectedCol?.name}</span>
+                            {' '}<button onClick={() => setSelectedCollection(null)} className="text-slate-500 hover:text-white">(search all)</button>
+                        </p>
+                    )}
 
-function Modal({ title, onClose, wide, children }: {
-    title: string;
-    onClose: () => void;
-    wide?: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
-            <div
-                className={`bg-dark-850 border border-dark-600 rounded-xl shadow-2xl p-6 ${wide ? 'w-[640px]' : 'w-[480px]'} max-h-[80vh] overflow-y-auto`}
-                onClick={e => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-semibold text-lg">{title}</h3>
-                    <button onClick={onClose} className="p-1 text-slate-500 hover:text-white transition">
-                        <X size={18} />
-                    </button>
+                    {searchResults.length > 0 && (
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                            {searchResults.map((result, i) => (
+                                <div key={i} className="px-4 py-3 bg-dark-800 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary-600/30 text-primary-300 text-xs font-bold">
+                                            {i + 1}
+                                        </span>
+                                        <span className="text-xs text-slate-500">Score: {(result.score * 100).toFixed(1)}%</span>
+                                    </div>
+                                    <p className="text-sm text-slate-300 whitespace-pre-wrap line-clamp-4">{result.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {searchResults.length === 0 && searchQuery && !searching && (
+                        <p className="text-sm text-slate-500 text-center py-4">No results. Try a different query.</p>
+                    )}
                 </div>
-                {children}
-            </div>
+            </Modal>
         </div>
     );
 }

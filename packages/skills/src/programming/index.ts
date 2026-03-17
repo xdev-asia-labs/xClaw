@@ -2,8 +2,8 @@
 // Programming Skill Pack - DevOps, Code, Git, CI/CD
 // ============================================================
 
-import { defineSkill } from '@autox/core';
-import type { SkillManifest } from '@autox/shared';
+import { defineSkill } from '@xclaw/core';
+import type { SkillManifest } from '@xclaw/shared';
 import { exec } from 'child_process';
 import { readFile, writeFile, readdir, stat } from 'fs/promises';
 import { join } from 'path';
@@ -13,7 +13,7 @@ const manifest: SkillManifest = {
   name: 'Programming & DevOps',
   version: '1.0.0',
   description: 'Code generation, execution, Git, testing, CI/CD monitoring, and development tools',
-  author: 'AutoX',
+  author: 'xClaw',
   category: 'programming',
   tags: ['code', 'git', 'devops', 'testing', 'ci-cd'],
   tools: [

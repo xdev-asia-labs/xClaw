@@ -1,8 +1,16 @@
 {
-    "name": "@autox/shared",
+    "name": "@xclaw/shared",
     "version": "0.1.0",
-    "private": true,
     "type": "module",
+    "description": "Shared type definitions, constants, and interfaces for the xClaw AI Agent Platform",
+    "license": "MIT",
+    "homepage": "https://ai.xdev.asia",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/tdduydev/xClaw.git",
+        "directory": "packages/shared"
+    },
+    "keywords": ["xclaw", "ai", "agent", "types", "shared"],
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "exports": {
@@ -11,6 +19,7 @@
             "types": "./dist/index.d.ts"
         }
     },
+    "files": ["dist", "README.md"],
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch"

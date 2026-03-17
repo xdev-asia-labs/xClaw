@@ -55,7 +55,7 @@ export class HealthService {
   private async checkOllama(): Promise<{ status: string; latencyMs: number; modelCount?: number }> {
     const start = Date.now();
     try {
-      const models = await this.ollamaService.listModels();
+      const models = await this.ollamaService.listModels(3000);
       return { status: 'healthy', latencyMs: Date.now() - start, modelCount: models.length };
     } catch {
       return { status: 'unhealthy', latencyMs: Date.now() - start };

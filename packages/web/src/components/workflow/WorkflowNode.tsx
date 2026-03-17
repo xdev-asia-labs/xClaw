@@ -5,7 +5,7 @@
 import React, { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { NODE_TYPES } from './nodeTypes';
-import { useWorkflowStore } from '../../stores';
+import { useWorkflowStore } from '@/stores';
 
 function WorkflowNodeComponent({ id, data, selected }: NodeProps) {
     const nodeConfig = NODE_TYPES.find(n => n.type === data.nodeType);
@@ -34,9 +34,9 @@ function WorkflowNodeComponent({ id, data, selected }: NodeProps) {
                         {(data.label as string) || nodeConfig?.label || 'Node'}
                     </span>
                 </div>
-                {data.description && (
-                    <p className="text-xs text-slate-400 truncate">{data.description as string}</p>
-                )}
+                {data.description ? (
+                    <p className="text-xs text-slate-400 truncate">{String(data.description)}</p>
+                ) : null}
             </div>
 
             {/* Output handle */}

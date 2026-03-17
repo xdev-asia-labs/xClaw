@@ -1,5 +1,5 @@
 {
-    "name": "@autox/server",
+    "name": "@xclaw/server",
     "version": "0.1.0",
     "private": true,
     "type": "module",
@@ -9,15 +9,15 @@
         "start": "node dist/index.js"
     },
     "dependencies": {
-        "@autox/core": "*",
-        "@autox/shared": "*",
-        "@autox/skills": "*",
-        "@autox/gateway": "*",
+        "@xclaw/core": "*",
+        "@xclaw/shared": "*",
+        "@xclaw/skills": "*",
+        "@xclaw/gateway": "*",
         "dotenv": "^16.4.0"
     },
     "optionalDependencies": {
-        "@autox/channel-telegram": "*",
-        "@autox/channel-discord": "*"
+        "@xclaw/channel-telegram": "*",
+        "@xclaw/channel-discord": "*"
     },
     "devDependencies": {
         "tsx": "^4.19.0",

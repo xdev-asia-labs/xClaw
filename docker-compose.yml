@@ -1,7 +1,7 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  autox:
+  xclaw:
     build: .
     ports:
       - "18789:18789"
@@ -13,14 +13,14 @@ services:
       mongodb:
         condition: service_healthy
     environment:
-      PG_CONNECTION_STRING: postgresql://autox:autox@postgres:5432/autox
-      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/autox
+      PG_CONNECTION_STRING: postgresql://xclaw:xclaw@postgres:5432/xclaw
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/xclaw
       GATEWAY_PORT: "18789"
       GATEWAY_HOST: "0.0.0.0"
-      OLLAMA_BASE_URL: "http://10.86.156.58:11434"
+      OLLAMA_BASE_URL: "http://host.docker.internal:11434"
       LLM_MODEL: "llama3.1:8b"
     volumes:
-      - autox-data:/app/data
+      - xclaw-data:/app/data
     restart: unless-stopped
 
   postgres:
@@ -29,13 +29,13 @@ services:
     ports:
       - "5451:5432"
     environment:
-      POSTGRES_USER: autox
-      POSTGRES_PASSWORD: autox
-      POSTGRES_DB: autox
+      POSTGRES_USER: xclaw
+      POSTGRES_PASSWORD: xclaw
+      POSTGRES_DB: xclaw
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U autox"]
+      test: ["CMD-SHELL", "pg_isready -U xclaw"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -54,6 +54,6 @@ services:
       retries: 5
 
 volumes:
-  autox-data:
+  xclaw-data:
   pgdata:
   mongodata:

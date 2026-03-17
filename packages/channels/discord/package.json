@@ -1,5 +1,5 @@
 {
-    "name": "@autox/channel-discord",
+    "name": "@xclaw/channel-discord",
     "version": "0.1.0",
     "private": true,
     "type": "module",
@@ -16,7 +16,7 @@
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@autox/shared": "*",
+        "@xclaw/shared": "*",
         "discord.js": "^14.16.0"
     },
     "devDependencies": {

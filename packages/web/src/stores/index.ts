@@ -3,7 +3,7 @@
 // ============================================================
 
 import { create } from 'zustand';
-import { uuid } from '../utils/uuid.js';
+import { uuid } from '@/utils/uuid';
 
 export interface WFNode {
   id: string;
@@ -100,6 +100,9 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  ragContext?: { content: string; documentId: string; score: number; collectionId?: string }[];
+  feedback?: 'up' | 'down' | null;
+  model?: string;
 }
 
 interface ChatState {
@@ -108,6 +111,7 @@ interface ChatState {
   isLoading: boolean;
   addMessage: (msg: ChatMessage) => void;
   updateMessage: (id: string, content: string) => void;
+  updateMessageMeta: (id: string, meta: Partial<ChatMessage>) => void;
   setLoading: (v: boolean) => void;
   clearMessages: () => void;
   setSessionId: (id: string) => void;
@@ -121,6 +125,9 @@ export const useChatStore = create<ChatState>((set) => ({
   updateMessage: (id, content) => set((s) => ({
     messages: s.messages.map(m => m.id === id ? { ...m, content } : m),
   })),
+  updateMessageMeta: (id, meta) => set((s) => ({
+    messages: s.messages.map(m => m.id === id ? { ...m, ...meta } : m),
+  })),
   setLoading: (isLoading) => set({ isLoading }),
   clearMessages: () => set({ messages: [], sessionId: uuid() }),
   setSessionId: (sessionId) => set({ sessionId }),
@@ -128,7 +135,15 @@ export const useChatStore = create<ChatState>((set) => ({
 
 // ─── App Store ──────────────────────────────────────────────
 
-type AppView = 'chat' | 'knowledge' | 'workflows' | 'skills' | 'resources' | 'settings' | 'health-dashboard';
+type AppView = 'chat' | 'knowledge' | 'workflows' | 'skills' | 'resources' | 'settings' | 'health-dashboard' | 'users' | 'channels' | 'api-keys' | 'models' | 'audit-log' | 'analytics' | 'mcp-servers' | 'doctor-profiles' | 'learning-data' | 'data-quality' | 'finetune-studio' | 'chat-analysis' | 'my-learning' | 'agent-hub';
+
+const VALID_VIEWS = new Set<string>(['chat','knowledge','workflows','skills','resources','settings','health-dashboard','users','channels','api-keys','models','audit-log','analytics','mcp-servers','doctor-profiles','learning-data','data-quality','finetune-studio','chat-analysis','my-learning','agent-hub']);
+const USER_VIEWS = new Set<string>(['chat','knowledge','api-keys','my-learning','agent-hub']);
+
+function getInitialView(): AppView {
+  const hash = window.location.hash.replace('#/', '').replace('#', '');
+  return VALID_VIEWS.has(hash) ? hash as AppView : 'chat';
+}
 
 interface AppState {
   currentView: AppView;
@@ -138,8 +153,29 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  currentView: 'chat',
+  currentView: getInitialView(),
   sidebarOpen: true,
-  setView: (currentView) => set({ currentView }),
+  setView: (currentView) => {
+    window.location.hash = '#/' + currentView;
+    set({ currentView });
+  },
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 }));
+
+/** Guard: reset to 'chat' if current view is not allowed for the role */
+export function guardViewForRole(role: string) {
+  const view = useAppStore.getState().currentView;
+  if (role !== 'admin' && !USER_VIEWS.has(view)) {
+    useAppStore.getState().setView('chat');
+  }
+}
+
+// Sync back-button / manual hash changes
+if (typeof window !== 'undefined') {
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#/', '').replace('#', '');
+    if (VALID_VIEWS.has(hash)) {
+      useAppStore.setState({ currentView: hash as AppView });
+    }
+  });
+}

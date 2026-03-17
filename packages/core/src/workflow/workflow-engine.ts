@@ -5,7 +5,7 @@
 import type {
   Workflow, WorkflowNode, WorkflowEdge, WorkflowExecution,
   NodeExecutionResult, WorkflowNodeType, ToolCall,
-} from '@autox/shared';
+} from '@xclaw/shared';
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { LLMRouter, type LLMAdapter } from '../llm/llm-router.js';
 import { EventBus } from '../agent/event-bus.js';

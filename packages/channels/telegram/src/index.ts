@@ -3,7 +3,7 @@
 // ============================================================
 
 import { Bot, type Context } from 'grammy';
-import type { ChannelPlugin, IncomingMessage, OutgoingMessage, ChatPlatform } from '@autox/shared';
+import type { ChannelPlugin, IncomingMessage, OutgoingMessage, ChatPlatform } from '@xclaw/shared';
 
 export class TelegramChannel implements ChannelPlugin {
   readonly id = 'telegram';

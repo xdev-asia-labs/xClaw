@@ -1,6 +1,6 @@
 # Skill Development Guide
 
-This guide explains how to create custom skill packs for the AutoX platform. Skills are the primary extension mechanism, adding domain-specific tools that the AI agent can use.
+This guide explains how to create custom skill packs for the xClaw platform. Skills are the primary extension mechanism, adding domain-specific tools that the AI agent can use.
 
 ## Concepts
 
@@ -18,7 +18,7 @@ This guide explains how to create custom skill packs for the AutoX platform. Ski
 Create a new file in `packages/skills/src/your-domain/index.ts`:
 
 ```typescript
-import { defineSkill } from '@autox/core';
+import { defineSkill } from '@xclaw/core';
 
 export const mySkill = defineSkill({
   id: 'my-domain',
@@ -84,7 +84,7 @@ export { mySkill } from './my-domain/index.js';  // Add this
 In `packages/server/src/index.ts`, import and register:
 
 ```typescript
-import { programmingSkill, healthcareSkill, mySkill } from '@autox/skills';
+import { programmingSkill, healthcareSkill, mySkill } from '@xclaw/skills';
 
 async function initSkills() {
   await agent.skills.register(programmingSkill);

@@ -1,0 +1,20 @@
+{
+    "name": "@xclaw/kp-vn-drug-formulary",
+    "version": "1.0.0",
+    "description": "Danh mục thuốc Việt Nam — ánh xạ tên biệt dược → hoạt chất, nhóm dược lý, quy cách đóng gói. Dựa trên Danh mục thuốc BHYT và Dược thư Quốc gia VN.",
+    "author": "xClaw Team",
+    "type": "knowledge-pack",
+    "domain": "healthcare",
+    "standard": "VN National Drug Formulary / RxNorm",
+    "locale": "vi-VN",
+    "entry": "",
+    "dataSources": [
+        {
+            "id": "vn-drug-formulary",
+            "label": "Danh mục thuốc Việt Nam",
+            "file": "data/vn-formulary.json",
+            "kind": "drug-formulary",
+            "description": "Danh sách thuốc thông dụng tại VN với hoạt chất, nhóm dược lý, liều dùng, bảo hiểm y tế"
+        }
+    ]
+}

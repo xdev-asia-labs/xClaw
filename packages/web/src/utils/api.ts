@@ -2,8 +2,8 @@
 // API Client - REST + Gateway WebSocket
 // ============================================================
 
-import { uuid } from './uuid.js';
-import { getAuthHeaders } from '../stores/auth-store.js';
+import { uuid } from '@/utils/uuid';
+import { getAuthHeaders } from '@/stores/auth-store';
 
 const BASE = '';
 
@@ -28,11 +28,11 @@ export const api = {
     }),
 
   // Streaming chat - returns a ReadableStream of SSE events
-  chatStream: async (conversationId: string, message: string, webSearch: boolean = false): Promise<ReadableStreamDefaultReader<Uint8Array>> => {
+  chatStream: async (conversationId: string, message: string, webSearch: boolean = false, model?: string): Promise<ReadableStreamDefaultReader<Uint8Array>> => {
     const res = await fetch(`${BASE}/api/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-      body: JSON.stringify({ conversationId, message, webSearch }),
+      body: JSON.stringify({ conversationId, message, webSearch, model }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
@@ -113,6 +113,21 @@ export const api = {
     request<any>('/api/kb/collections/' + collectionId + '/documents'),
   addKBDocument: (collectionId: string, data: { source: string; input: string; name?: string }) =>
     request<any>('/api/kb/collections/' + collectionId + '/documents', { method: 'POST', body: JSON.stringify(data) }),
+  uploadKBFile: async (collectionId: string, file: File, name?: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (name) formData.append('name', name);
+    const resp = await fetch(`${BASE}/api/kb/collections/${collectionId}/upload`, {
+      method: 'POST',
+      headers: { ...getAuthHeaders() },
+      body: formData,
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: resp.statusText }));
+      throw new Error(err.error || resp.statusText);
+    }
+    return resp.json();
+  },
   deleteKBDocument: (collectionId: string, docId: string) =>
     request<any>('/api/kb/collections/' + collectionId + '/documents/' + docId, { method: 'DELETE' }),
   searchKB: (query: string, collectionIds?: string[], topK?: number) =>
@@ -123,6 +138,156 @@ export const api = {
   getProviderHealth: () => request<any>('/api/provider/health'),
   getModels: () => request<any>('/api/models'),
   getOllamaModels: () => request<any>('/api/ollama/models'),
+
+  // Feedback
+  submitFeedback: (messageId: string, rating: 'up' | 'down', comment?: string) =>
+    request<{ success: boolean }>('/api/chat/feedback', {
+      method: 'POST',
+      body: JSON.stringify({ messageId, rating, comment }),
+    }),
+
+  // MCP Servers
+  getMCPServers: (domain?: string) =>
+    request<{ total: number; servers: any[] }>('/api/mcp/servers' + (domain ? '?domain=' + domain : '')),
+  registerMCPServer: (data: Record<string, unknown>) =>
+    request<any>('/api/mcp/servers', { method: 'POST', body: JSON.stringify(data) }),
+  toggleMCPServer: (id: string, enabled: boolean) =>
+    request<any>('/api/mcp/servers/' + id + '/toggle', { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+  getMCPHealth: (id: string) =>
+    request<any>('/api/mcp/servers/' + id + '/health'),
+
+  // ─── Admin APIs ──────────────────────────────────────
+  admin: {
+    getUsers: () => request<{ users: any[] }>('/api/admin/users'),
+    setUserRole: (id: string, role: string) =>
+      request('/api/admin/users/' + id + '/role', { method: 'PATCH', body: JSON.stringify({ role }) }),
+    setUserActive: (id: string, isActive: boolean) =>
+      request('/api/admin/users/' + id + '/status', { method: 'PATCH', body: JSON.stringify({ isActive }) }),
+
+    getChannels: () => request<{ channels: any[] }>('/api/admin/channels'),
+    saveChannel: (data: { platform: string; displayName: string; config: Record<string, unknown>; isEnabled?: boolean }) =>
+      request<any>('/api/admin/channels', { method: 'POST', body: JSON.stringify(data) }),
+    deleteChannel: (id: string) =>
+      request('/api/admin/channels/' + id, { method: 'DELETE' }),
+    startChannel: (platform: string) =>
+      request<any>('/api/admin/channels/' + platform + '/start', { method: 'POST' }),
+    stopChannel: (platform: string) =>
+      request<any>('/api/admin/channels/' + platform + '/stop', { method: 'POST' }),
+
+    getApiKeys: () => request<{ keys: any[] }>('/api/admin/api-keys'),
+    bootstrap: () => request<{ success: boolean; role: string }>('/api/admin/bootstrap', { method: 'POST' }),
+
+    // Reports
+    getReportSummary: (days: number = 7) =>
+      request<any>('/api/admin/reports/summary?days=' + days),
+    getUserActivity: (days: number = 30) =>
+      request<{ users: any[] }>('/api/admin/reports/user-activity?days=' + days),
+    exportReport: (type: string = 'summary', days: number = 7, format: string = 'markdown') =>
+      request<string>('/api/admin/reports/export?type=' + type + '&days=' + days + '&format=' + format),
+    exportReportBlob: async (type: string = 'summary', days: number = 7, format: 'excel' | 'pdf') => {
+      const token = localStorage.getItem('token');
+      const res = await fetch(BASE + '/api/admin/reports/export?type=' + type + '&days=' + days + '&format=' + format, {
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      });
+      if (!res.ok) throw new Error('Export failed');
+      return res.blob();
+    },
+
+    // ── Doctor Profiles ─────────────────────────────────
+    getDoctors: () => request<{ profiles: any[] }>('/api/admin/doctors'),
+    getDoctor: (id: string) => request<any>('/api/admin/doctors/' + id),
+    createDoctor: (data: Record<string, unknown>) =>
+      request<any>('/api/admin/doctors', { method: 'POST', body: JSON.stringify(data) }),
+    updateDoctor: (id: string, data: Record<string, unknown>) =>
+      request<any>('/api/admin/doctors/' + id, { method: 'PATCH', body: JSON.stringify(data) }),
+    getDoctorStats: (id: string) =>
+      request<any>('/api/admin/doctors/' + id + '/stats'),
+    getDoctorAnalysis: (id: string, days?: number) =>
+      request<any>('/api/admin/doctors/' + id + '/analysis' + (days ? '?days=' + days : '')),
+
+    // ── Learning Entries ────────────────────────────────
+    getLearning: (opts?: { doctor_id?: string; status?: string; type?: string; limit?: number; offset?: number }) => {
+      const params = new URLSearchParams();
+      if (opts?.doctor_id) params.set('doctor_id', opts.doctor_id);
+      if (opts?.status) params.set('status', opts.status);
+      if (opts?.type) params.set('type', opts.type);
+      if (opts?.limit) params.set('limit', String(opts.limit));
+      if (opts?.offset) params.set('offset', String(opts.offset));
+      const qs = params.toString();
+      return request<{ entries: any[] }>('/api/admin/learning' + (qs ? '?' + qs : ''));
+    },
+    createLearning: (data: Record<string, unknown>) =>
+      request<any>('/api/admin/learning', { method: 'POST', body: JSON.stringify(data) }),
+    updateLearningStatus: (id: string, status: string) =>
+      request<any>('/api/admin/learning/' + id + '/status', { method: 'PATCH', body: JSON.stringify({ status }) }),
+    extractLearning: (doctorId: string, conversationId: string, messages: any[]) =>
+      request<{ extracted: number; entries: any[] }>('/api/admin/learning/extract', {
+        method: 'POST', body: JSON.stringify({ doctorId, conversationId, messages }),
+      }),
+    getDataQuality: (days?: number) =>
+      request<any>('/api/admin/data-quality' + (days ? '?days=' + days : '')),
+
+    // ── Fine-Tune Datasets ──────────────────────────────
+    getDatasets: () => request<{ datasets: any[] }>('/api/admin/finetune/datasets'),
+    getDataset: (id: string) => request<any>('/api/admin/finetune/datasets/' + id),
+    createDataset: (data: Record<string, unknown>) =>
+      request<any>('/api/admin/finetune/datasets', { method: 'POST', body: JSON.stringify(data) }),
+    updateDataset: (id: string, data: Record<string, unknown>) =>
+      request<any>('/api/admin/finetune/datasets/' + id, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteDataset: (id: string) =>
+      request('/api/admin/finetune/datasets/' + id, { method: 'DELETE' }),
+
+    // ── Fine-Tune Samples ───────────────────────────────
+    getSamples: (datasetId: string, opts?: { status?: string; limit?: number; offset?: number }) => {
+      const params = new URLSearchParams();
+      if (opts?.status) params.set('status', opts.status);
+      if (opts?.limit) params.set('limit', String(opts.limit));
+      if (opts?.offset) params.set('offset', String(opts.offset));
+      const qs = params.toString();
+      return request<{ samples: any[] }>('/api/admin/finetune/datasets/' + datasetId + '/samples' + (qs ? '?' + qs : ''));
+    },
+    createSample: (datasetId: string, data: Record<string, unknown>) =>
+      request<any>('/api/admin/finetune/datasets/' + datasetId + '/samples', { method: 'POST', body: JSON.stringify(data) }),
+    updateSample: (id: string, data: Record<string, unknown>) =>
+      request<any>('/api/admin/finetune/samples/' + id, { method: 'PATCH', body: JSON.stringify(data) }),
+    generateSamples: (datasetId: string, opts: { doctorId?: string; types?: string[]; minConfidence?: number }) =>
+      request<{ generated: number; samples: any[] }>('/api/admin/finetune/datasets/' + datasetId + '/generate', {
+        method: 'POST', body: JSON.stringify(opts),
+      }),
+
+    // ── Fine-Tune Jobs ──────────────────────────────────
+    getJobs: (datasetId?: string) =>
+      request<{ jobs: any[] }>('/api/admin/finetune/jobs' + (datasetId ? '?dataset_id=' + datasetId : '')),
+    createJob: (data: Record<string, unknown>) =>
+      request<any>('/api/admin/finetune/jobs', { method: 'POST', body: JSON.stringify(data) }),
+    updateJob: (id: string, data: Record<string, unknown>) =>
+      request<any>('/api/admin/finetune/jobs/' + id, { method: 'PATCH', body: JSON.stringify(data) }),
+  },
+
+  // ─── Doctor Self-Service APIs ────────────────────────
+  doctor: {
+    getProfile: () => request<any>('/api/doctor/profile'),
+    getLearning: (opts?: { status?: string; type?: string; limit?: number; offset?: number }) => {
+      const params = new URLSearchParams();
+      if (opts?.status) params.set('status', opts.status);
+      if (opts?.type) params.set('type', opts.type);
+      if (opts?.limit) params.set('limit', String(opts.limit));
+      if (opts?.offset) params.set('offset', String(opts.offset));
+      const qs = params.toString();
+      return request<{ entries: any[] }>('/api/doctor/learning' + (qs ? '?' + qs : ''));
+    },
+    confirmLearning: (id: string, status: 'doctor_confirmed' | 'rejected') =>
+      request<any>('/api/doctor/learning/' + id + '/confirm', { method: 'PATCH', body: JSON.stringify({ status }) }),
+    getAnalysis: (days?: number) =>
+      request<any>('/api/doctor/analysis' + (days ? '?days=' + days : '')),
+  },
+
+  // ─── User API Keys ──────────────────────────────────
+  getApiKeys: () => request<{ keys: any[] }>('/api/api-keys'),
+  createApiKey: (name: string) =>
+    request<{ key: string; id: string; prefix: string }>('/api/api-keys', { method: 'POST', body: JSON.stringify({ name }) }),
+  deleteApiKey: (id: string) =>
+    request('/api/api-keys/' + id, { method: 'DELETE' }),
 };
 
 // ─── Gateway WebSocket Client ───────────────────────────────

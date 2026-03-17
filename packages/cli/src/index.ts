@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================
-// AutoX CLI - Command-line interface for the AutoX platform
+// xClaw CLI - Command-line interface for the xClaw platform
 // ============================================================
 
 import { Command } from 'commander';
@@ -12,8 +12,8 @@ import { doctorCommand } from './commands/doctor.js';
 const program = new Command();
 
 program
-  .name('autox')
-  .description('AutoX - AI Agent Platform')
+  .name('xclaw')
+  .description('xClaw - AI Agent Platform')
   .version('0.1.0');
 
 program.addCommand(gatewayCommand);

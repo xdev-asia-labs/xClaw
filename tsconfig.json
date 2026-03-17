@@ -18,25 +18,25 @@
         "sourceMap": true,
         "composite": true,
         "paths": {
-            "@autox/core": [
+            "@xclaw/core": [
                 "./packages/core/src"
             ],
-            "@autox/shared": [
+            "@xclaw/shared": [
                 "./packages/shared/src"
             ],
-            "@autox/skills": [
+            "@xclaw/skills": [
                 "./packages/skills/src"
             ],
-            "@autox/gateway": [
+            "@xclaw/gateway": [
                 "./packages/gateway/src"
             ],
-            "@autox/server": [
+            "@xclaw/server": [
                 "./packages/server/src"
             ],
-            "@autox/channel-telegram": [
+            "@xclaw/channel-telegram": [
                 "./packages/channels/telegram/src"
             ],
-            "@autox/channel-discord": [
+            "@xclaw/channel-discord": [
                 "./packages/channels/discord/src"
             ]
         }

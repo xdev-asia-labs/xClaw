@@ -2,7 +2,7 @@
 // LLM Router - Abstract layer to call any LLM provider
 // ============================================================
 
-import type { LLMConfig, LLMMessage, LLMResponse, ToolDefinition, ToolCall } from '@autox/shared';
+import type { LLMConfig, LLMMessage, LLMResponse, ToolDefinition, ToolCall } from '@xclaw/shared';
 
 export interface LLMAdapter {
   chat(messages: LLMMessage[], tools?: ToolDefinition[]): Promise<LLMResponse>;

@@ -1,5 +1,5 @@
 // ============================================================
-// AutoX Shared Types - Foundation for the entire platform
+// xClaw Shared Types - Foundation for the entire platform
 // ============================================================
 
 // ─── LLM Provider Types ─────────────────────────────────────
@@ -90,6 +90,14 @@ export type SkillCategory =
   | 'ecommerce'
   | 'smart-home'
   | 'communication'
+  | 'analytics'
+  | 'devops'
+  | 'content'
+  | 'research'
+  | 'sales'
+  | 'project-management'
+  | 'learning'
+  | 'design'
   | 'custom';
 
 export interface SkillConfigField {
@@ -395,7 +403,36 @@ export interface PluginManifest {
   permissions?: PluginPermission[];
 }
 
-export type PluginType = 'skill' | 'channel' | 'integration' | 'theme';
+export type PluginType = 'skill' | 'channel' | 'integration' | 'theme' | 'knowledge-pack';
+
+// ─── Knowledge Pack (plugin-based data packs) ──────────────
+
+/** Descriptor for a data collection inside a knowledge pack */
+export interface KnowledgeDataSource {
+  /** Unique ID for this data source */
+  id: string;
+  /** Human-readable label */
+  label: string;
+  /** Relative path to the JSON data file from the pack root */
+  file: string;
+  /** What kind of data: drugs, interactions, contraindications, allergies, etc. */
+  kind: 'drug-formulary' | 'drug-interactions' | 'icd10-contraindications' | 'cross-reactivity' | 'allergy-profiles' | 'custom';
+  /** Description shown in UI */
+  description?: string;
+}
+
+/** Manifest for knowledge-pack type plugins (xclaw.plugin.json) */
+export interface KnowledgePackManifest extends PluginManifest {
+  type: 'knowledge-pack';
+  /** Domain this pack belongs to */
+  domain: 'healthcare' | 'programming' | 'general';
+  /** Standard the data conforms to (e.g. 'HL7-FHIR-R5', 'ICD-10', 'RxNorm') */
+  standard?: string;
+  /** Locale / region */
+  locale?: string;
+  /** Data sources bundled in this pack */
+  dataSources: KnowledgeDataSource[];
+}
 
 export type PluginPermission =
   | 'network'        // HTTP requests

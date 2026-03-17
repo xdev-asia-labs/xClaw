@@ -3,7 +3,8 @@
 // ============================================================
 
 import React, { useEffect, useState } from 'react';
-import { api } from '../../utils/api';
+import { api } from '@/utils/api';
+import { PageHeader, EmptyState, Badge, Button } from '@/components/ui';
 import { Puzzle, Power, PowerOff, RefreshCw, Wrench, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface Skill {
@@ -51,31 +52,22 @@ export function SkillsPanel() {
     return (
         <div className="flex-1 overflow-y-auto p-6">
             <div className="max-w-4xl mx-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-white">Skills & Tools</h1>
-                        <p className="text-sm text-slate-400 mt-1">
-                            Manage agent capabilities by activating or deactivating skill packs
-                        </p>
-                    </div>
-                    <button
-                        onClick={fetchSkills}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-sm text-slate-300 hover:bg-dark-700 transition disabled:opacity-50"
-                    >
-                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                        Refresh
-                    </button>
-                </div>
+                <PageHeader
+                    title="Skills & Tools"
+                    subtitle="Manage agent capabilities by activating or deactivating skill packs"
+                    icon={Puzzle}
+                    onRefresh={fetchSkills}
+                    refreshing={loading}
+                />
 
                 {/* Skill list */}
-                <div className="space-y-3">
+                <div className="space-y-3 mt-6">
                     {skills.length === 0 && !loading && (
-                        <div className="text-center py-16">
-                            <Puzzle size={48} className="text-slate-600 mx-auto mb-3" />
-                            <p className="text-slate-400">No skills loaded. Start the backend to see available skills.</p>
-                        </div>
+                        <EmptyState
+                            icon={Puzzle}
+                            title="No skills loaded"
+                            description="Start the backend to see available skills."
+                        />
                     )}
 
                     {skills.map(skill => (
@@ -94,9 +86,7 @@ export function SkillsPanel() {
                                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-dark-700 text-slate-400">
                                             v{skill.version}
                                         </span>
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-300">
-                                            {skill.category}
-                                        </span>
+                                        <Badge variant="info">{skill.category}</Badge>
                                     </div>
                                     <p className="text-xs text-slate-400 mt-0.5 truncate">{skill.description}</p>
                                 </div>
@@ -111,8 +101,8 @@ export function SkillsPanel() {
                                 <button
                                     onClick={() => toggleSkill(skill)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${skill.active
-                                            ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                                            : 'bg-dark-700 text-slate-400 hover:bg-dark-600'
+                                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                                        : 'bg-dark-700 text-slate-400 hover:bg-dark-600'
                                         }`}
                                 >
                                     {skill.active ? <Power size={12} /> : <PowerOff size={12} />}

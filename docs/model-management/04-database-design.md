@@ -1,5 +1,5 @@
 # Database Design
-## AutoX Model Management — PostgreSQL 18 + MongoDB
+## xClaw Model Management — PostgreSQL 18 + MongoDB
 **Version:** 3.0.0  
 **Date:** 2026-03-16
 
@@ -755,8 +755,8 @@ Knowledge base groupings (like folders for RAG documents).
 {
   _id: ObjectId("..."),
   collectionId: "coll_019505a3...",        // Custom ID
-  name: "AutoX Documentation",
-  description: "Official AutoX docs and guides",
+  name: "xClaw Documentation",
+  description: "Official xClaw docs and guides",
   
   // Stats (auto-updated on document add/remove)
   documentCount: 15,
@@ -774,7 +774,7 @@ Knowledge base groupings (like folders for RAG documents).
   },
   
   // Metadata
-  tags: ["documentation", "autox"],
+  tags: ["documentation", "xclaw"],
   
   createdAt: ISODate("2026-03-16T10:00:00Z"),
   updatedAt: ISODate("2026-03-16T14:00:00Z"),
@@ -811,7 +811,7 @@ Original uploaded documents (before chunking).
   originalUrl: null,                        // For URL sources
   
   // Content (raw text after parsing)
-  content: "# AutoX\n\nAutoX is an AI Agent platform...",
+  content: "# xClaw\n\nxClaw is an AI Agent platform...",
   contentHash: "sha256:abc123...",          // Dedup check
   sizeBytes: 4096,
   
@@ -856,7 +856,7 @@ Chunked text pieces with embedding vectors — core of RAG vector search.
   collectionId: "coll_019505a3...",        // Parent collection (denormalized for query performance)
   
   // Content
-  content: "# AutoX\n\nAutoX is an AI Agent platform that enables...",
+  content: "# xClaw\n\nxClaw is an AI Agent platform that enables...",
   index: 0,                                 // Chunk order within document
   tokenCount: 487,
   
@@ -1285,8 +1285,8 @@ db.knowledge_documents.findOne({
 
 ```bash
 # PostgreSQL 18 backup
-pg_dump -U autox -h localhost -Fc autox > backup_pg_$(date +%Y%m%d).dump
+pg_dump -U xclaw -h localhost -Fc xclaw > backup_pg_$(date +%Y%m%d).dump
 
 # MongoDB backup
-mongodump --host localhost --port 27017 --db autox --gzip --out backup_mongo_$(date +%Y%m%d)
+mongodump --host localhost --port 27017 --db xclaw --gzip --out backup_mongo_$(date +%Y%m%d)
 ```

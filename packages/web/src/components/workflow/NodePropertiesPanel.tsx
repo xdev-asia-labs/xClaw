@@ -3,7 +3,7 @@
 // ============================================================
 
 import React from 'react';
-import { useWorkflowStore } from '../../stores';
+import { useWorkflowStore } from '@/stores';
 import { NODE_TYPES } from './nodeTypes';
 import { X, Trash2 } from 'lucide-react';
 

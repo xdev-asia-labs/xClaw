@@ -1,0 +1,14 @@
+{
+    "name": "@xclaw/kp-icd10-drug-interactions",
+    "version": "1.0.0",
+    "description": "xClaw Knowledge Pack: ICD-10 drug contraindications & drug-drug interactions",
+    "private": true,
+    "type": "module",
+    "keywords": [
+        "xclaw",
+        "knowledge-pack",
+        "icd10",
+        "drug-interactions",
+        "healthcare"
+    ]
+}

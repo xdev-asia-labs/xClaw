@@ -59,4 +59,31 @@ export class RAGService {
 
     return context.trim();
   }
+
+  async buildContextDetailed(query: string, collectionIds?: string[], maxTokens: number = 2000): Promise<{
+    context: string;
+    chunks: { content: string; documentId: string; collectionId: string; score: number }[];
+  }> {
+    const results = await this.search(query, collectionIds);
+    if (results.length === 0) return { context: '', chunks: [] };
+
+    let context = '';
+    let tokens = 0;
+    const chunks: { content: string; documentId: string; collectionId: string; score: number }[] = [];
+
+    for (const result of results) {
+      const chunkTokens = Math.ceil(result.content.length / 4);
+      if (tokens + chunkTokens > maxTokens) break;
+      context += `---\n[Source: ${result.documentId}, Score: ${result.score.toFixed(3)}]\n${result.content}\n\n`;
+      chunks.push({
+        content: result.content,
+        documentId: result.documentId,
+        collectionId: result.collectionId,
+        score: result.score,
+      });
+      tokens += chunkTokens;
+    }
+
+    return { context: context.trim(), chunks };
+  }
 }

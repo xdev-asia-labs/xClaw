@@ -1,30 +1,30 @@
 // ============================================================
-// CLI: autox gateway - Start the Gateway control plane
+// CLI: xclaw gateway - Start the Gateway control plane
 // ============================================================
 
 import { Command } from 'commander';
 import dotenv from 'dotenv';
 
 export const gatewayCommand = new Command('gateway')
-  .description('Start the AutoX Gateway (WebSocket control plane)')
+  .description('Start the xClaw Gateway (WebSocket control plane)')
   .option('-p, --port <port>', 'Gateway port', '18789')
   .option('-h, --host <host>', 'Gateway host', '127.0.0.1')
   .option('--cors <origins>', 'CORS origins (comma-separated)', 'http://localhost:3000')
   .action(async (opts) => {
     dotenv.config();
 
-    const { Agent } = await import('@autox/core');
-    const { Gateway } = await import('@autox/gateway');
-    const { programmingSkill, healthcareSkill } = await import('@autox/skills');
+    const { Agent } = await import('@xclaw/core');
+    const { Gateway } = await import('@xclaw/gateway');
+    const { programmingSkill, healthcareSkill } = await import('@xclaw/skills');
 
-    console.log('Starting AutoX Gateway...\n');
+    console.log('Starting xClaw Gateway...\n');
 
     const agent = new Agent({
-      id: 'autox-main',
-      name: process.env.AGENT_NAME ?? 'AutoX',
+      id: 'xclaw-main',
+      name: process.env.AGENT_NAME ?? 'xClaw',
       persona: process.env.AGENT_PERSONA ?? 'A helpful AI assistant.',
       systemPrompt: process.env.AGENT_SYSTEM_PROMPT ??
-        'You are AutoX, an intelligent AI agent with programming and healthcare tools. Use tools when appropriate. Be helpful, accurate, and safety-conscious.',
+        'You are xClaw, an intelligent AI agent with programming and healthcare tools. Use tools when appropriate. Be helpful, accurate, and safety-conscious.',
       llm: {
         provider: (process.env.LLM_PROVIDER as 'openai' | 'anthropic' | 'ollama') ?? 'openai',
         model: process.env.LLM_MODEL ?? 'gpt-4o',

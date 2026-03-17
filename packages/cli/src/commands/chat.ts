@@ -1,12 +1,12 @@
 // ============================================================
-// CLI: autox chat - Send a message to the agent via Gateway WS
+// CLI: xclaw chat - Send a message to the agent via Gateway WS
 // ============================================================
 
 import { Command } from 'commander';
 import WebSocket from 'ws';
 
 export const chatCommand = new Command('chat')
-  .description('Chat with the AutoX agent')
+  .description('Chat with the xClaw agent')
   .argument('<message>', 'Message to send')
   .option('-u, --url <url>', 'Gateway WebSocket URL', 'ws://127.0.0.1:18789/ws')
   .option('-s, --session <id>', 'Session ID')
@@ -39,7 +39,7 @@ export const chatCommand = new Command('chat')
 
     ws.on('error', (err) => {
       console.error(`Connection error: ${err.message}`);
-      console.error('Is the Gateway running? Start it with: autox gateway');
+      console.error('Is the Gateway running? Start it with: xclaw gateway');
       process.exit(1);
     });
 

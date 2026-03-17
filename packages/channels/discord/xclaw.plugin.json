@@ -1,8 +1,8 @@
 {
-    "name": "@autox/channel-discord",
+    "name": "@xclaw/channel-discord",
     "version": "0.1.0",
-    "description": "Discord channel plugin for AutoX",
-    "author": "AutoX",
+    "description": "Discord channel plugin for xClaw",
+    "author": "xClaw",
     "type": "channel",
     "entry": "dist/index.js",
     "platforms": [

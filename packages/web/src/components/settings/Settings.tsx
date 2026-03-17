@@ -3,8 +3,9 @@
 // ============================================================
 
 import React, { useEffect, useState } from 'react';
-import { api } from '../../utils/api';
-import { Settings as SettingsIcon, Save, Loader2 } from 'lucide-react';
+import { api } from '@/utils/api';
+import { Card, Button, Spinner, PageHeader, Input, Textarea, Select } from '@/components/ui';
+import { Settings as SettingsIcon, Save } from 'lucide-react';
 
 interface AgentConfig {
     name: string;
@@ -19,7 +20,7 @@ interface AgentConfig {
 }
 
 const DEFAULT_CONFIG: AgentConfig = {
-    name: 'AutoX',
+    name: 'xClaw',
     persona: 'A helpful AI assistant',
     llm: { provider: 'openai', model: 'gpt-4o-mini', apiKey: '', baseUrl: '', temperature: 0.7 },
 };
@@ -58,7 +59,7 @@ export function Settings() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full">
-                <Loader2 size={24} className="animate-spin text-slate-500" />
+                <Spinner size={28} />
             </div>
         );
     }
@@ -66,102 +67,88 @@ export function Settings() {
     return (
         <div className="flex-1 overflow-y-auto p-6">
             <div className="max-w-2xl mx-auto">
-                <div className="flex items-center gap-2 mb-6">
-                    <SettingsIcon size={24} className="text-slate-400" />
-                    <h1 className="text-2xl font-bold text-white">Settings</h1>
-                </div>
+                <PageHeader title="Settings" icon={SettingsIcon} subtitle="Agent configuration" />
 
-                <div className="space-y-6">
+                <div className="space-y-6 mt-6">
                     {/* Agent Basics */}
-                    <Section title="Agent Profile">
-                        <Field label="Agent Name">
-                            <input
-                                type="text"
+                    <Card>
+                        <h2 className="text-sm font-semibold text-slate-300 mb-4">Agent Profile</h2>
+                        <div className="space-y-4">
+                            <Input
+                                label="Agent Name"
                                 value={config.name}
                                 onChange={e => setConfig(c => ({ ...c, name: e.target.value }))}
-                                className="input-field"
                             />
-                        </Field>
-                        <Field label="Persona / System Prompt">
-                            <textarea
+                            <Textarea
+                                label="Persona / System Prompt"
                                 value={config.persona}
                                 onChange={e => setConfig(c => ({ ...c, persona: e.target.value }))}
-                                className="input-field h-28 resize-y"
+                                rows={4}
                                 placeholder="Describe how the agent should behave..."
                             />
-                        </Field>
-                    </Section>
+                        </div>
+                    </Card>
 
                     {/* LLM Configuration */}
-                    <Section title="LLM Configuration">
-                        <Field label="Provider">
-                            <select
+                    <Card>
+                        <h2 className="text-sm font-semibold text-slate-300 mb-4">LLM Configuration</h2>
+                        <div className="space-y-4">
+                            <Select
+                                label="Provider"
                                 value={config.llm.provider}
                                 onChange={e => updateLLM('provider', e.target.value)}
-                                className="input-field"
-                            >
-                                <option value="openai">OpenAI</option>
-                                <option value="anthropic">Anthropic (Claude)</option>
-                                <option value="ollama">Ollama (Local)</option>
-                            </select>
-                        </Field>
-                        <Field label="Model">
-                            <input
-                                type="text"
+                                options={[
+                                    { value: 'openai', label: 'OpenAI' },
+                                    { value: 'anthropic', label: 'Anthropic (Claude)' },
+                                    { value: 'ollama', label: 'Ollama (Local)' },
+                                ]}
+                            />
+                            <Input
+                                label="Model"
                                 value={config.llm.model}
                                 onChange={e => updateLLM('model', e.target.value)}
-                                className="input-field"
                                 placeholder="gpt-4o-mini, claude-3-haiku, llama3..."
                             />
-                        </Field>
-                        <Field label="API Key">
-                            <input
+                            <Input
+                                label="API Key"
                                 type="password"
                                 value={config.llm.apiKey}
                                 onChange={e => updateLLM('apiKey', e.target.value)}
-                                className="input-field"
                                 placeholder="sk-..."
                             />
-                        </Field>
-                        {config.llm.provider === 'ollama' && (
-                            <Field label="Base URL">
-                                <input
-                                    type="text"
+                            {config.llm.provider === 'ollama' && (
+                                <Input
+                                    label="Base URL"
                                     value={config.llm.baseUrl}
                                     onChange={e => updateLLM('baseUrl', e.target.value)}
-                                    className="input-field"
                                     placeholder="http://localhost:11434/v1"
                                 />
-                            </Field>
-                        )}
-                        <Field label="Temperature">
-                            <div className="flex items-center gap-3">
-                                <input
-                                    type="range"
-                                    min={0}
-                                    max={2}
-                                    step={0.1}
-                                    value={config.llm.temperature}
-                                    onChange={e => updateLLM('temperature', parseFloat(e.target.value))}
-                                    className="flex-1"
-                                />
-                                <span className="text-sm text-slate-300 w-8 text-right">
-                                    {config.llm.temperature}
-                                </span>
+                            )}
+                            <div>
+                                <label className="block text-xs font-medium text-slate-400 mb-1.5">Temperature</label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={2}
+                                        step={0.1}
+                                        value={config.llm.temperature}
+                                        onChange={e => updateLLM('temperature', parseFloat(e.target.value))}
+                                        className="flex-1"
+                                    />
+                                    <span className="text-sm text-slate-300 w-8 text-right">
+                                        {config.llm.temperature}
+                                    </span>
+                                </div>
                             </div>
-                        </Field>
-                    </Section>
+                        </div>
+                    </Card>
 
                     {/* Save */}
                     <div className="flex items-center gap-3">
-                        <button
-                            onClick={save}
-                            disabled={saving}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition"
-                        >
-                            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        <Button onClick={save} loading={saving} icon={Save}>
                             Save Settings
-                        </button>
+                        </Button>
                         {status && (
                             <span className={`text-sm ${status.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>
                                 {status}
@@ -170,24 +157,6 @@ export function Settings() {
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-    return (
-        <div className="bg-dark-800 border border-dark-700 rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-slate-300 mb-4">{title}</h2>
-            <div className="space-y-4">{children}</div>
-        </div>
-    );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-    return (
-        <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">{label}</label>
-            {children}
         </div>
     );
 }

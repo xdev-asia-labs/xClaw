@@ -18,7 +18,7 @@ export function NodePalette() {
         : NODE_TYPES;
 
     const onDragStart = (event: React.DragEvent, nodeConfig: NodeTypeConfig) => {
-        event.dataTransfer.setData('application/autox-node', JSON.stringify(nodeConfig));
+        event.dataTransfer.setData('application/xclaw-node', JSON.stringify(nodeConfig));
         event.dataTransfer.effectAllowed = 'move';
     };
 

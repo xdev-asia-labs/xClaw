@@ -1,5 +1,5 @@
 # Implementation Plan
-## AutoX Model Management Skill
+## xClaw Model Management Skill
 **Version:** 3.0.0  
 **Date:** 2026-03-16
 
@@ -40,8 +40,8 @@ Implement Model Management as a SkillPlugin with:
 | PostgreSQL 18 | `postgres:18` | 5432 | New (docker-compose) |
 | MongoDB 7 | `mongo:7` | 27017 | New (docker-compose) |
 | Ollama | local install | 11434 | Existing |
-| AutoX Gateway | local | 18789 | Existing |
-| AutoX Web UI | local | 3000 | Existing |
+| xClaw Gateway | local | 18789 | Existing |
+| xClaw Web UI | local | 3000 | Existing |
 
 ---
 
@@ -62,7 +62,7 @@ Implement Model Management as a SkillPlugin with:
 | 1.7 | Write PG migration 003: MCP + RAG tables | `repositories/pg/migrations/003_mcp_rag.sql` |
 | 1.8 | Create migration runner | `repositories/pg/migrations/runner.ts` |
 | 1.9 | Create MongoDB index setup (incl. vector search) | `repositories/mongo/setup-indexes.ts` |
-| 1.10 | Add shared types to `@autox/shared` (incl. MCP + RAG types) | `packages/shared/src/types/index.ts` |
+| 1.10 | Add shared types to `@xclaw/shared` (incl. MCP + RAG types) | `packages/shared/src/types/index.ts` |
 
 **Deliverable:** `docker compose up` starts PG18 + Mongo, migrations run on skill activate.
 
@@ -374,10 +374,10 @@ packages/web/src/components/knowledge/
 ```bash
 # .env additions
 # PostgreSQL 18
-PG_CONNECTION_STRING=postgresql://autox:autox@localhost:5432/autox
+PG_CONNECTION_STRING=postgresql://xclaw:xclaw@localhost:5432/xclaw
 
 # MongoDB
-MONGO_CONNECTION_STRING=mongodb://localhost:27017/autox
+MONGO_CONNECTION_STRING=mongodb://localhost:27017/xclaw
 
 # Encryption key for API keys (generate: openssl rand -hex 32)
 ENCRYPTION_KEY=your-256-bit-hex-key-here
@@ -407,7 +407,7 @@ RAG_MAX_CONTEXT_TOKENS=2048                 # Max tokens injected into prompt
 ```yaml
 # Add to existing docker-compose.yml
 services:
-  autox:
+  xclaw:
     # ... existing config
     depends_on:
       postgres:
@@ -415,8 +415,8 @@ services:
       mongodb:
         condition: service_healthy
     environment:
-      PG_CONNECTION_STRING: postgresql://autox:autox@postgres:5432/autox
-      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/autox
+      PG_CONNECTION_STRING: postgresql://xclaw:xclaw@postgres:5432/xclaw
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/xclaw
 
   postgres:
     image: postgres:18
@@ -424,13 +424,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: autox
-      POSTGRES_PASSWORD: autox
-      POSTGRES_DB: autox
+      POSTGRES_USER: xclaw
+      POSTGRES_PASSWORD: xclaw
+      POSTGRES_DB: xclaw
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U autox"]
+      test: ["CMD-SHELL", "pg_isready -U xclaw"]
       interval: 5s
       timeout: 5s
       retries: 5

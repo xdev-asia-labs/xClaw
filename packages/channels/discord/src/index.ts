@@ -3,7 +3,7 @@
 // ============================================================
 
 import { Client, GatewayIntentBits, type Message, Partials } from 'discord.js';
-import type { ChannelPlugin, IncomingMessage, OutgoingMessage, ChatPlatform } from '@autox/shared';
+import type { ChannelPlugin, IncomingMessage, OutgoingMessage, ChatPlatform } from '@xclaw/shared';
 
 export class DiscordChannel implements ChannelPlugin {
   readonly id = 'discord';

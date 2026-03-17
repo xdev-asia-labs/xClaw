@@ -3,7 +3,7 @@
 // ============================================================
 
 import React, { useState } from 'react';
-import { useAuthStore } from '../../stores/auth-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { Zap, LogIn, UserPlus, Loader2 } from 'lucide-react';
 
 export function LoginPage() {
@@ -41,7 +41,7 @@ export function LoginPage() {
                 {/* Logo */}
                 <div className="flex items-center justify-center gap-3 mb-8">
                     <Zap size={32} className="text-primary-400" />
-                    <span className="text-3xl font-bold text-white tracking-tight">AutoX</span>
+                    <span className="text-3xl font-bold text-white tracking-tight">xClaw</span>
                 </div>
 
                 {/* Card */}

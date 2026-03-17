@@ -2,7 +2,7 @@
 // Channel Manager - Registers and routes to channel plugins
 // ============================================================
 
-import type { ChannelPlugin, IncomingMessage, OutgoingMessage, ChatPlatform } from '@autox/shared';
+import type { ChannelPlugin, IncomingMessage, OutgoingMessage, ChatPlatform } from '@xclaw/shared';
 
 export class ChannelManager {
   private channels: Map<string, ChannelPlugin> = new Map();

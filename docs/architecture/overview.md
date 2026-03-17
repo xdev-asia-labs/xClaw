@@ -2,7 +2,7 @@
 
 ## Overview
 
-AutoX is an open-source AI Agent platform built as a TypeScript monorepo. It provides a pluggable skill system, a visual workflow builder, and multi-LLM support — designed to be extended per industry (programming, healthcare, finance, etc.).
+xClaw is an open-source AI Agent platform built as a TypeScript monorepo. It provides a pluggable skill system, a visual workflow builder, and multi-LLM support — designed to be extended per industry (programming, healthcare, finance, etc.).
 
 ## High-Level Architecture
 
@@ -55,11 +55,11 @@ The project is organized as an npm workspaces monorepo with 5 packages:
 
 | Package | Purpose | Dependencies |
 |---|---|---|
-| `@autox/shared` | Type definitions, constants, interfaces | None |
-| `@autox/core` | Agent engine, LLM, memory, tools, workflow | `@autox/shared` |
-| `@autox/skills` | Industry-specific skill packs | `@autox/shared`, `@autox/core` |
-| `@autox/server` | REST API + WebSocket server | `@autox/core`, `@autox/skills` |
-| `@autox/web` | React frontend with workflow builder | Standalone (API client) |
+| `@xclaw/shared` | Type definitions, constants, interfaces | None |
+| `@xclaw/core` | Agent engine, LLM, memory, tools, workflow | `@xclaw/shared` |
+| `@xclaw/skills` | Industry-specific skill packs | `@xclaw/shared`, `@xclaw/core` |
+| `@xclaw/server` | REST API + WebSocket server | `@xclaw/core`, `@xclaw/skills` |
+| `@xclaw/web` | React frontend with workflow builder | Standalone (API client) |
 
 ### Dependency Graph
 
@@ -156,7 +156,7 @@ Executes visual workflows created in the drag-and-drop builder:
 
 - BFS graph traversal from trigger nodes
 - 16 built-in node type handlers
-- Template resolution (`{{nodeId.outputKey}}`)
+- Template resolution (e.g. `nodeId.outputKey` syntax)
 - Conditional edge routing
 - Custom handler registration via `registerNodeHandler()`
 
@@ -217,7 +217,7 @@ Client can also send:
 
 ## Type System
 
-All shared types are defined in `@autox/shared` (`packages/shared/src/types/index.ts`):
+All shared types are defined in `@xclaw/shared` (`packages/shared/src/types/index.ts`):
 
 | Category | Key Types |
 |---|---|

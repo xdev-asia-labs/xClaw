@@ -12,8 +12,8 @@ export interface OllamaModel {
 export class OllamaService {
   constructor(private baseUrl: string = 'http://localhost:11434') {}
 
-  async listModels(): Promise<OllamaModel[]> {
-    const resp = await fetch(`${this.baseUrl}/api/tags`, { signal: AbortSignal.timeout(10000) });
+  async listModels(timeoutMs: number = 10000): Promise<OllamaModel[]> {
+    const resp = await fetch(`${this.baseUrl}/api/tags`, { signal: AbortSignal.timeout(timeoutMs) });
     if (!resp.ok) throw new Error(`Ollama unreachable: ${resp.status}`);
     const data = await resp.json() as { models: Array<Record<string, unknown>> };
 
@@ -84,7 +84,8 @@ export class OllamaService {
     const resp = await fetch(`${this.baseUrl}/api/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, prompt: text }),
+      body: JSON.stringify({ model, prompt: text, options: { num_ctx: 8192 } }),
+      signal: AbortSignal.timeout(120_000),
     });
     if (!resp.ok) throw new Error(`Embedding failed: ${resp.status}`);
     const data = await resp.json() as { embedding: number[] };

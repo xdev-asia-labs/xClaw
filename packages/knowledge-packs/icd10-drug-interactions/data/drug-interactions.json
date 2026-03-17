@@ -1,0 +1,350 @@
+{
+    "_meta": {
+        "description": "Tương tác thuốc-thuốc (drug-drug interactions). Mỗi entry mô tả một cặp thuốc nguy hiểm khi dùng chung.",
+        "standard": "RxNorm / WHO Essential Medicines",
+        "version": "2025-Q4",
+        "totalEntries": 25
+    },
+    "interactions": [
+        {
+            "id": "DDI-001",
+            "drugA": {
+                "code": "11289",
+                "system": "rxnorm",
+                "display": "warfarin"
+            },
+            "drugB": {
+                "code": "1191",
+                "system": "rxnorm",
+                "display": "aspirin"
+            },
+            "severity": "high",
+            "effect": "Tăng nguy cơ xuất huyết nghiêm trọng",
+            "mechanism": "Aspirin ức chế tiểu cầu + Warfarin kháng vitamin K → nguy cơ chảy máu cộng hưởng",
+            "recommendation": "Tránh phối hợp. Nếu cần, theo dõi INR chặt chẽ và giảm liều warfarin."
+        },
+        {
+            "id": "DDI-002",
+            "drugA": {
+                "code": "6809",
+                "system": "rxnorm",
+                "display": "metformin"
+            },
+            "drugB": {
+                "code": "alcohol",
+                "system": "local",
+                "display": "ethanol (rượu)"
+            },
+            "severity": "high",
+            "effect": "Tăng nguy cơ nhiễm toan lactic",
+            "mechanism": "Ethanol ức chế gluconeogenesis → metformin tích lũy → nhiễm toan lactic",
+            "recommendation": "Khuyến cáo bệnh nhân tránh rượu bia khi dùng metformin."
+        },
+        {
+            "id": "DDI-003",
+            "drugA": {
+                "code": "4053",
+                "system": "rxnorm",
+                "display": "enalapril"
+            },
+            "drugB": {
+                "code": "8183",
+                "system": "rxnorm",
+                "display": "potassium chloride"
+            },
+            "severity": "high",
+            "effect": "Tăng kali máu (hyperkalemia) nguy hiểm",
+            "mechanism": "ACE inhibitor giữ kali + bổ sung kali → tăng kali máu → rối loạn nhịp tim",
+            "recommendation": "Theo dõi kali máu thường xuyên. Tránh bổ sung kali nếu không cần thiết."
+        },
+        {
+            "id": "DDI-004",
+            "drugA": {
+                "code": "2551",
+                "system": "rxnorm",
+                "display": "ciprofloxacin"
+            },
+            "drugB": {
+                "code": "10582",
+                "system": "rxnorm",
+                "display": "theophylline"
+            },
+            "severity": "high",
+            "effect": "Tăng nồng độ theophylline → co giật, loạn nhịp",
+            "mechanism": "Ciprofloxacin ức chế CYP1A2 → giảm chuyển hóa theophylline",
+            "recommendation": "Giảm liều theophylline 30-50% hoặc chuyển sang kháng sinh khác."
+        },
+        {
+            "id": "DDI-005",
+            "drugA": {
+                "code": "10582",
+                "system": "rxnorm",
+                "display": "sulfamethoxazole/trimethoprim"
+            },
+            "drugB": {
+                "code": "11289",
+                "system": "rxnorm",
+                "display": "warfarin"
+            },
+            "severity": "high",
+            "effect": "Tăng tác dụng warfarin → xuất huyết",
+            "mechanism": "Trimethoprim ức chế CYP2C9 → tăng nồng độ warfarin",
+            "recommendation": "Theo dõi INR. Giảm liều warfarin 25-50% trong thời gian dùng kháng sinh."
+        },
+        {
+            "id": "DDI-006",
+            "drugA": {
+                "code": "5640",
+                "system": "rxnorm",
+                "display": "ibuprofen"
+            },
+            "drugB": {
+                "code": "29046",
+                "system": "rxnorm",
+                "display": "lisinopril"
+            },
+            "severity": "moderate",
+            "effect": "Giảm tác dụng hạ huyết áp + tăng nguy cơ suy thận",
+            "mechanism": "NSAID ức chế prostaglandin thận → giảm hiệu quả ACE inhibitor + ảnh hưởng GFR",
+            "recommendation": "Hạn chế NSAID. Nếu cần, dùng ngắn ngày và theo dõi creatinine."
+        },
+        {
+            "id": "DDI-007",
+            "drugA": {
+                "code": "3640",
+                "system": "rxnorm",
+                "display": "diclofenac"
+            },
+            "drugB": {
+                "code": "11289",
+                "system": "rxnorm",
+                "display": "warfarin"
+            },
+            "severity": "high",
+            "effect": "Tăng nguy cơ xuất huyết tiêu hóa",
+            "mechanism": "NSAID gây loét dạ dày + Warfarin kháng đông → xuất huyết GI",
+            "recommendation": "Tránh phối hợp. Nếu cần NSAID, dùng kèm PPI bảo vệ dạ dày."
+        },
+        {
+            "id": "DDI-008",
+            "drugA": {
+                "code": "6809",
+                "system": "rxnorm",
+                "display": "metformin"
+            },
+            "drugB": {
+                "code": "contrast-iv",
+                "system": "local",
+                "display": "chất cản quang iodine IV"
+            },
+            "severity": "high",
+            "effect": "Tăng nguy cơ nhiễm toan lactic cấp",
+            "mechanism": "Chất cản quang gây suy thận cấp → tích lũy metformin",
+            "recommendation": "Ngưng metformin 48h trước và sau khi tiêm cản quang. Kiểm tra eGFR."
+        },
+        {
+            "id": "DDI-009",
+            "drugA": {
+                "code": "36567",
+                "system": "rxnorm",
+                "display": "simvastatin"
+            },
+            "drugB": {
+                "code": "4406",
+                "system": "rxnorm",
+                "display": "erythromycin"
+            },
+            "severity": "high",
+            "effect": "Tăng nồng độ statin → tiêu cơ vân (rhabdomyolysis)",
+            "mechanism": "Erythromycin ức chế CYP3A4 → tăng nồng độ simvastatin",
+            "recommendation": "Tạm ngưng statin. Hoặc chuyển sang kháng sinh không ức chế CYP3A4."
+        },
+        {
+            "id": "DDI-010",
+            "drugA": {
+                "code": "1191",
+                "system": "rxnorm",
+                "display": "aspirin"
+            },
+            "drugB": {
+                "code": "5640",
+                "system": "rxnorm",
+                "display": "ibuprofen"
+            },
+            "severity": "moderate",
+            "effect": "Ibuprofen giảm tác dụng bảo vệ tim mạch của aspirin",
+            "mechanism": "Ibuprofen cạnh tranh gắn COX-1 → ức chế tác dụng kháng tiểu cầu không hồi phục của aspirin",
+            "recommendation": "Uống aspirin ít nhất 30 phút trước ibuprofen, hoặc dùng NSAID khác."
+        },
+        {
+            "id": "DDI-011",
+            "drugA": {
+                "code": "2670",
+                "system": "rxnorm",
+                "display": "clopidogrel"
+            },
+            "drugB": {
+                "code": "7646",
+                "system": "rxnorm",
+                "display": "omeprazole"
+            },
+            "severity": "moderate",
+            "effect": "Giảm tác dụng kháng tiểu cầu của clopidogrel",
+            "mechanism": "Omeprazole ức chế CYP2C19 → giảm chuyển hóa clopidogrel thành dạng hoạt tính",
+            "recommendation": "Chuyển sang pantoprazole (không ức chế CYP2C19)."
+        },
+        {
+            "id": "DDI-012",
+            "drugA": {
+                "code": "723",
+                "system": "rxnorm",
+                "display": "amoxicillin"
+            },
+            "drugB": {
+                "code": "6809",
+                "system": "rxnorm",
+                "display": "metformin"
+            },
+            "severity": "low",
+            "effect": "Amoxicillin có thể làm tăng nhẹ hấp thu metformin",
+            "mechanism": "Thay đổi hệ vi sinh đường ruột → thay đổi hấp thu",
+            "recommendation": "Theo dõi đường huyết. Thường không cần điều chỉnh liều."
+        },
+        {
+            "id": "DDI-013",
+            "drugA": {
+                "code": "5640",
+                "system": "rxnorm",
+                "display": "ibuprofen"
+            },
+            "drugB": {
+                "code": "3640",
+                "system": "rxnorm",
+                "display": "diclofenac"
+            },
+            "severity": "high",
+            "effect": "Tăng nguy cơ loét và xuất huyết tiêu hóa nghiêm trọng",
+            "mechanism": "Hai NSAID cùng ức chế COX → cộng hưởng tác dụng phụ xói mòn niêm mạc dạ dày",
+            "recommendation": "TUYỆT ĐỐI KHÔNG phối hợp 2 NSAID. Chọn 1 loại và dùng liều thấp nhất."
+        },
+        {
+            "id": "DDI-014",
+            "drugA": {
+                "code": "4053",
+                "system": "rxnorm",
+                "display": "enalapril"
+            },
+            "drugB": {
+                "code": "29046",
+                "system": "rxnorm",
+                "display": "lisinopril"
+            },
+            "severity": "high",
+            "effect": "Tụt huyết áp nghiêm trọng + tăng kali máu + suy thận",
+            "mechanism": "Hai ACE inhibitor → ức chế RAAS kép → biến chứng nghiêm trọng",
+            "recommendation": "KHÔNG BAO GIỜ phối hợp 2 ACE inhibitor."
+        },
+        {
+            "id": "DDI-015",
+            "drugA": {
+                "code": "7052",
+                "system": "rxnorm",
+                "display": "naproxen"
+            },
+            "drugB": {
+                "code": "8356",
+                "system": "rxnorm",
+                "display": "lithium"
+            },
+            "severity": "high",
+            "effect": "Tăng nồng độ lithium → ngộ độc lithium",
+            "mechanism": "NSAID giảm thanh thải lithium qua thận",
+            "recommendation": "Giảm liều lithium 20-25%. Theo dõi nồng độ lithium huyết thanh."
+        },
+        {
+            "id": "DDI-016",
+            "drugA": {
+                "code": "2551",
+                "system": "rxnorm",
+                "display": "ciprofloxacin"
+            },
+            "drugB": {
+                "code": "antacid-al-mg",
+                "system": "local",
+                "display": "antacid chứa nhôm/magiê"
+            },
+            "severity": "moderate",
+            "effect": "Giảm hấp thu ciprofloxacin → giảm hiệu quả kháng sinh",
+            "mechanism": "Ion kim loại (Al³⁺, Mg²⁺) tạo chelate với fluoroquinolone → không hấp thu",
+            "recommendation": "Uống ciprofloxacin 2h trước hoặc 6h sau antacid."
+        },
+        {
+            "id": "DDI-017",
+            "drugA": {
+                "code": "321988",
+                "system": "rxnorm",
+                "display": "cefuroxime"
+            },
+            "drugB": {
+                "code": "7980",
+                "system": "rxnorm",
+                "display": "probenecid"
+            },
+            "severity": "moderate",
+            "effect": "Tăng nồng độ cefuroxime",
+            "mechanism": "Probenecid ức chế bài tiết cefuroxime qua ống thận",
+            "recommendation": "Có thể tận dụng để tăng nồng độ kháng sinh. Theo dõi tác dụng phụ."
+        },
+        {
+            "id": "DDI-018",
+            "drugA": {
+                "code": "36567",
+                "system": "rxnorm",
+                "display": "simvastatin"
+            },
+            "drugB": {
+                "code": "grapefruit",
+                "system": "local",
+                "display": "nước bưởi (grapefruit)"
+            },
+            "severity": "moderate",
+            "effect": "Tăng nồng độ statin → nguy cơ tiêu cơ vân",
+            "mechanism": "Furanocoumarins trong bưởi ức chế CYP3A4 đường ruột",
+            "recommendation": "Tránh uống nước bưởi khi dùng simvastatin, lovastatin, atorvastatin."
+        },
+        {
+            "id": "DDI-019",
+            "drugA": {
+                "code": "6809",
+                "system": "rxnorm",
+                "display": "metformin"
+            },
+            "drugB": {
+                "code": "insulin",
+                "system": "local",
+                "display": "insulin"
+            },
+            "severity": "moderate",
+            "effect": "Tăng nguy cơ hạ đường huyết",
+            "mechanism": "Tác dụng hạ đường huyết cộng hưởng",
+            "recommendation": "Phối hợp phổ biến nhưng cần theo dõi đường huyết. Giảm liều insulin nếu HbA1c đạt mục tiêu."
+        },
+        {
+            "id": "DDI-020",
+            "drugA": {
+                "code": "10207",
+                "system": "rxnorm",
+                "display": "sulfamethoxazole"
+            },
+            "drugB": {
+                "code": "6809",
+                "system": "rxnorm",
+                "display": "metformin"
+            },
+            "severity": "moderate",
+            "effect": "Tăng nguy cơ hạ đường huyết",
+            "mechanism": "Sulfamethoxazole ức chế CYP2C8 → giảm chuyển hóa metformin + tác dụng hạ đường huyết riêng",
+            "recommendation": "Theo dõi đường huyết chặt chẽ trong thời gian dùng kháng sinh."
+        }
+    ]
+}

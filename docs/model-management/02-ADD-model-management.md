@@ -1,8 +1,8 @@
 # Architecture Design Document (ADD)
-## AutoX Model Management Skill — Dual Database + MCP + RAG Architecture
+## xClaw Model Management Skill — Dual Database + MCP + RAG Architecture
 **Version:** 3.0.0  
 **Date:** 2026-03-16  
-**Author:** AutoX Team  
+**Author:** xClaw Team  
 **Status:** Draft  
 
 ---
@@ -23,7 +23,7 @@ Model Management được thiết kế theo 5 nguyên tắc:
 
 ```
                     ┌─────────────────────────────────────────────────┐
-                    │            AutoX Gateway (WS + REST)             │
+                    │            xClaw Gateway (WS + REST)             │
                     │                ws://127.0.0.1:18789/ws           │
                     └─────────┬──────────────────────┬────────────────┘
                               │                      │
@@ -375,7 +375,7 @@ Model Context Protocol (MCP) cho phép Agent kết nối tới external tool ser
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                        AutoX Agent                                │
+│                        xClaw Agent                                │
 │                                                                    │
 │  ┌──────────┐  ┌──────────────┐  ┌───────────────────────────┐   │
 │  │BuiltIn   │  │ Skill Tools  │  │   MCP Tool Bridge          │   │
@@ -574,17 +574,17 @@ RAG (Retrieval-Augmented Generation) cho phép Agent sử dụng knowledge base 
 ### 6.2 Knowledge Hierarchy
 
 ```
-Knowledge Base (AutoX)
+Knowledge Base (xClaw)
 │
-├── Collection: "AutoX Documentation"     ← Grouping = folder
+├── Collection: "xClaw Documentation"     ← Grouping = folder
 │   ├── Document: "README.md"             ← Original file
-│   │   ├── Chunk 1: "# AutoX\nAutoX is..." (512 tokens, embedding[768])
+│   │   ├── Chunk 1: "# xClaw\nxClaw is..." (512 tokens, embedding[768])
 │   │   ├── Chunk 2: "## Installation\n..."  (512 tokens, embedding[768])
 │   │   └── Chunk 3: "## Usage\n..."         (410 tokens, embedding[768])
 │   ├── Document: "API-Guide.pdf"
 │   │   ├── Chunk 1...
 │   │   └── Chunk N...
-│   └── Document: "https://autox.dev/docs"  ← URL source
+│   └── Document: "https://xclaw.dev/docs"  ← URL source
 │       └── Chunks...
 │
 ├── Collection: "TypeScript Best Practices"
@@ -697,10 +697,10 @@ Agent.buildMessages() — Updated flow with RAG:
 
 System prompt with RAG context:
 ┌─────────────────────────────────────────────────┐
-│ You are AutoX AI Agent...                        │
+│ You are xClaw AI Agent...                        │
 │                                                   │
 │ ## Relevant Knowledge (from knowledge base):     │
-│ [1] AutoX uses PostgreSQL 18 for structured...   │
+│ [1] xClaw uses PostgreSQL 18 for structured...   │
 │ [2] The defineSkill pattern requires...          │
 │ [3] MCP servers connect via stdio transport...   │
 │                                                   │
@@ -824,7 +824,7 @@ import { Pool } from 'pg';
 
 const pgPool = new Pool({
   connectionString: config.pgConnectionString, 
-  // postgresql://autox:autox@localhost:5432/autox
+  // postgresql://xclaw:xclaw@localhost:5432/xclaw
   max: 10,                    // Max connections
   idleTimeoutMillis: 30000,   // Close idle after 30s
   connectionTimeoutMillis: 5000,
@@ -837,12 +837,12 @@ const pgPool = new Pool({
 import { MongoClient } from 'mongodb';
 
 const mongoClient = new MongoClient(config.mongoConnectionString, {
-  // mongodb://localhost:27017/autox
+  // mongodb://localhost:27017/xclaw
   maxPoolSize: 10,
   minPoolSize: 2,
   serverSelectionTimeoutMS: 5000,
 });
-const db = mongoClient.db('autox');
+const db = mongoClient.db('xclaw');
 ```
 
 ### 9.3 Graceful Degradation
@@ -883,7 +883,7 @@ const db = mongoClient.db('autox');
 | UUID generation | PG18 `uuidv7()` | Native, no external lib, time-sortable |
 | API key encryption | Node.js `crypto` (AES-256-GCM) | Standard library, no dependency |
 | Migration tool | Raw SQL files | Simple, version controlled, no ORM overhead |
-| Skill pattern | `defineSkill()` | Follows existing AutoX convention exactly |
+| Skill pattern | `defineSkill()` | Follows existing xClaw convention exactly |
 | MCP protocol | `@modelcontextprotocol/sdk` | Official SDK, supports stdio + SSE + streamable HTTP |
 | Text chunking | Custom recursive splitter | No heavy dependency. Token-aware split by paragraph → sentence → word |
 | Embedding model | `nomic-embed-text` (Ollama) / `text-embedding-3-small` (OpenAI) | Local-first via Ollama, OpenAI fallback for quality |
@@ -903,13 +903,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: autox
-      POSTGRES_PASSWORD: autox
-      POSTGRES_DB: autox
+      POSTGRES_USER: xclaw
+      POSTGRES_PASSWORD: xclaw
+      POSTGRES_DB: xclaw
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U autox"]
+      test: ["CMD-SHELL", "pg_isready -U xclaw"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -2,7 +2,7 @@
 // Memory Manager - Persistent memory with vector search
 // ============================================================
 
-import type { MemoryEntry, ConversationMessage } from '@autox/shared';
+import type { MemoryEntry, ConversationMessage } from '@xclaw/shared';
 import { LLMRouter, type LLMAdapter } from '../llm/llm-router.js';
 
 export interface MemoryStore {

@@ -28,7 +28,7 @@ const API = '';
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  token: localStorage.getItem('autox_token'),
+  token: localStorage.getItem('xclaw_token'),
   isLoading: false,
   error: null,
 
@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
-      localStorage.setItem('autox_token', data.token);
+      localStorage.setItem('xclaw_token', data.token);
       set({ user: data.user, token: data.token, isLoading: false });
     } catch (err) {
       set({ isLoading: false, error: err instanceof Error ? err.message : 'Login failed' });
@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
-      localStorage.setItem('autox_token', data.token);
+      localStorage.setItem('xclaw_token', data.token);
       set({ user: data.user, token: data.token, isLoading: false });
     } catch (err) {
       set({ isLoading: false, error: err instanceof Error ? err.message : 'Registration failed' });
@@ -76,12 +76,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` },
       }).catch(() => {});
     }
-    localStorage.removeItem('autox_token');
+    localStorage.removeItem('xclaw_token');
     set({ user: null, token: null });
   },
 
   restoreSession: async () => {
-    const token = localStorage.getItem('autox_token');
+    const token = localStorage.getItem('xclaw_token');
     if (!token) return;
     set({ isLoading: true });
     try {
@@ -89,7 +89,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
-        localStorage.removeItem('autox_token');
+        localStorage.removeItem('xclaw_token');
         set({ user: null, token: null, isLoading: false });
         return;
       }

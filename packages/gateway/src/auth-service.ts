@@ -2,7 +2,7 @@
 // Auth Service - User authentication + per-user chat history
 // ============================================================
 
-import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
+import { scrypt, randomBytes, timingSafeEqual, createHash } from 'crypto';
 import { promisify } from 'util';
 import pg from 'pg';
 
@@ -69,10 +69,15 @@ export class AuthService {
     if (existing.rows.length > 0) throw new Error('Username already taken');
 
     const passwordHash = await hashPassword(password);
+
+    // First user gets admin role automatically
+    const countResult = await this.pool.query('SELECT count(*)::int AS cnt FROM users');
+    const isFirst = countResult.rows[0].cnt === 0;
+
     const result = await this.pool.query(
-      `INSERT INTO users (username, password_hash, display_name) VALUES ($1, $2, $3)
+      `INSERT INTO users (username, password_hash, display_name, role) VALUES ($1, $2, $3, $4)
        RETURNING id, username, display_name, role, avatar_url`,
-      [username, passwordHash, displayName],
+      [username, passwordHash, displayName, isFirst ? 'admin' : 'user'],
     );
 
     const row = result.rows[0];
@@ -240,5 +245,157 @@ export class AuthService {
       `UPDATE conversations SET title = $1 WHERE id = $2 AND title = 'New Chat'`,
       [title, conversationId],
     );
+  }
+
+  // ─── Admin Methods ────────────────────────────────────
+
+  async listUsers(): Promise<Array<AuthUser & { isActive: boolean; createdAt: string; lastLoginAt: string | null }>> {
+    const result = await this.pool.query(
+      `SELECT id, username, display_name, role, avatar_url, is_active, created_at, last_login_at
+       FROM users ORDER BY created_at ASC`,
+    );
+    return result.rows.map(r => ({
+      id: r.id, username: r.username, displayName: r.display_name,
+      role: r.role, avatarUrl: r.avatar_url, isActive: r.is_active,
+      createdAt: r.created_at, lastLoginAt: r.last_login_at,
+    }));
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    await this.pool.query('UPDATE users SET role = $1 WHERE id = $2', [role, userId]);
+  }
+
+  async setUserActive(userId: string, isActive: boolean): Promise<void> {
+    await this.pool.query('UPDATE users SET is_active = $1 WHERE id = $2', [isActive, userId]);
+  }
+
+  async isFirstUser(userId: string): Promise<boolean> {
+    const result = await this.pool.query('SELECT id FROM users ORDER BY created_at ASC LIMIT 1');
+    return result.rows.length > 0 && result.rows[0].id === userId;
+  }
+
+  // ─── Channel Config ──────────────────────────────────
+
+  async listChannelConfigs(): Promise<any[]> {
+    const result = await this.pool.query(
+      `SELECT id, platform, display_name, is_enabled, config, status, last_connected_at, created_at, updated_at
+       FROM channel_configs ORDER BY created_at ASC`,
+    );
+    return result.rows.map(r => ({
+      id: r.id, platform: r.platform, displayName: r.display_name,
+      isEnabled: r.is_enabled, config: r.config, status: r.status,
+      lastConnectedAt: r.last_connected_at, createdAt: r.created_at, updatedAt: r.updated_at,
+    }));
+  }
+
+  async getChannelConfig(platform: string): Promise<any | null> {
+    const result = await this.pool.query(
+      `SELECT id, platform, display_name, is_enabled, config, status
+       FROM channel_configs WHERE platform = $1`,
+      [platform],
+    );
+    if (result.rows.length === 0) return null;
+    const r = result.rows[0];
+    return {
+      id: r.id, platform: r.platform, displayName: r.display_name,
+      isEnabled: r.is_enabled, config: r.config, status: r.status,
+    };
+  }
+
+  async upsertChannelConfig(data: { platform: string; displayName: string; config: Record<string, unknown>; isEnabled?: boolean }, createdBy: string): Promise<any> {
+    const result = await this.pool.query(
+      `INSERT INTO channel_configs (platform, display_name, config, is_enabled, created_by)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (platform) DO UPDATE SET
+         display_name = EXCLUDED.display_name,
+         config = EXCLUDED.config,
+         is_enabled = EXCLUDED.is_enabled,
+         updated_at = now()
+       RETURNING id, platform, display_name, is_enabled, config, status, created_at, updated_at`,
+      [data.platform, data.displayName, JSON.stringify(data.config), data.isEnabled ?? false, createdBy],
+    );
+    const r = result.rows[0];
+    return {
+      id: r.id, platform: r.platform, displayName: r.display_name,
+      isEnabled: r.is_enabled, config: r.config, status: r.status,
+      createdAt: r.created_at, updatedAt: r.updated_at,
+    };
+  }
+
+  async deleteChannelConfig(id: string): Promise<void> {
+    await this.pool.query('DELETE FROM channel_configs WHERE id = $1', [id]);
+  }
+
+  async updateChannelStatus(platform: string, status: string): Promise<void> {
+    const lastConnected = status === 'connected' ? 'now()' : 'last_connected_at';
+    await this.pool.query(
+      `UPDATE channel_configs SET status = $1, is_enabled = $2, last_connected_at = ${lastConnected} WHERE platform = $3`,
+      [status, status === 'connected', platform],
+    );
+  }
+
+  // ─── API Keys ────────────────────────────────────────
+
+  async createApiKey(userId: string, name: string): Promise<{ key: string; id: string; prefix: string }> {
+    const raw = randomBytes(32).toString('hex');
+    const prefix = raw.slice(0, 8);
+    const keyHash = createHash('sha256').update(raw).digest('hex');
+
+    const result = await this.pool.query(
+      `INSERT INTO api_keys (user_id, name, key_prefix, key_hash)
+       VALUES ($1, $2, $3, $4) RETURNING id`,
+      [userId, name, prefix, keyHash],
+    );
+    return { key: `axk_${raw}`, id: result.rows[0].id, prefix };
+  }
+
+  async getUserByApiKey(apiKey: string): Promise<AuthUser | null> {
+    if (!apiKey.startsWith('axk_')) return null;
+    const raw = apiKey.slice(4);
+    const keyHash = createHash('sha256').update(raw).digest('hex');
+    const prefix = raw.slice(0, 8);
+
+    const result = await this.pool.query(
+      `SELECT u.id, u.username, u.display_name, u.role, u.avatar_url
+       FROM api_keys ak JOIN users u ON ak.user_id = u.id
+       WHERE ak.key_prefix = $1 AND ak.key_hash = $2 AND ak.is_active = true AND u.is_active = true
+         AND (ak.expires_at IS NULL OR ak.expires_at > now())`,
+      [prefix, keyHash],
+    );
+    if (result.rows.length === 0) return null;
+
+    // Update last used
+    await this.pool.query(`UPDATE api_keys SET last_used_at = now() WHERE key_prefix = $1 AND key_hash = $2`, [prefix, keyHash]);
+
+    const r = result.rows[0];
+    return { id: r.id, username: r.username, displayName: r.display_name, role: r.role, avatarUrl: r.avatar_url };
+  }
+
+  async listApiKeys(): Promise<any[]> {
+    const result = await this.pool.query(
+      `SELECT ak.id, ak.user_id, ak.name, ak.key_prefix, ak.scopes, ak.is_active, ak.last_used_at, ak.created_at, u.username
+       FROM api_keys ak JOIN users u ON ak.user_id = u.id ORDER BY ak.created_at DESC`,
+    );
+    return result.rows.map(r => ({
+      id: r.id, userId: r.user_id, username: r.username, name: r.name,
+      prefix: r.key_prefix, scopes: r.scopes, isActive: r.is_active,
+      lastUsedAt: r.last_used_at, createdAt: r.created_at,
+    }));
+  }
+
+  async listApiKeysForUser(userId: string): Promise<any[]> {
+    const result = await this.pool.query(
+      `SELECT id, name, key_prefix, scopes, is_active, last_used_at, created_at
+       FROM api_keys WHERE user_id = $1 ORDER BY created_at DESC`,
+      [userId],
+    );
+    return result.rows.map(r => ({
+      id: r.id, name: r.name, prefix: r.key_prefix, scopes: r.scopes,
+      isActive: r.is_active, lastUsedAt: r.last_used_at, createdAt: r.created_at,
+    }));
+  }
+
+  async deleteApiKey(userId: string, keyId: string): Promise<void> {
+    await this.pool.query('DELETE FROM api_keys WHERE id = $1 AND user_id = $2', [keyId, userId]);
   }
 }

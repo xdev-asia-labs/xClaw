@@ -2,17 +2,37 @@
 // Healthcare Skill Pack - Y tế, chẩn đoán hỗ trợ, quản lý sức khỏe
 // ============================================================
 
-import { defineSkill } from '@autox/core';
-import type { SkillManifest } from '@autox/shared';
+import { defineSkill } from '@xclaw/core';
+import type { SkillManifest } from '@xclaw/shared';
+import {
+  addAllergy,
+  getActiveAllergies,
+  getAllAllergies,
+  removeAllergy,
+  buildAllergyIntolerance,
+  buildMedicationRequest,
+  checkPrescriptionAlerts,
+  checkSingleMedication,
+  lookupDrug,
+  ingestDataSource,
+  checkDrugInteraction,
+  findInteractionsFor,
+  checkContraindicationsForDiagnosis,
+  isContraindicated,
+  lookupVNFormulary,
+  getIngestedStats,
+} from './clinical-alert/index.js';
+import type { MedicationRequest } from './clinical-alert/index.js';
+import { PluginLoader } from '@xclaw/core';
 
 const manifest: SkillManifest = {
   id: 'healthcare',
   name: 'Healthcare & Medical Assistant',
   version: '1.0.0',
   description: 'Health monitoring, symptom analysis, medication management, appointment scheduling, medical record organization, and clinical workflow support',
-  author: 'AutoX',
+  author: 'xClaw',
   category: 'healthcare',
-  tags: ['health', 'medical', 'symptoms', 'medication', 'appointment', 'patient', 'clinical'],
+  tags: ['health', 'medical', 'symptoms', 'medication', 'appointment', 'patient', 'clinical', 'fhir', 'allergy', 'his', 'prescription-alert'],
   tools: [
     // ─── Symptom & Triage ─────────────────────────────────
     {
@@ -144,6 +164,83 @@ const manifest: SkillManifest = {
         { name: 'limit', type: 'number', description: 'Max results', required: false },
       ],
       returns: { name: 'codes', type: 'array', description: 'Matching ICD-10 codes' },
+    },
+    // ─── Clinical Alert – Cảnh báo lâm sàng (FHIR R5) ──
+    {
+      name: 'allergy_record',
+      description: 'Ghi nhận tiền sử dị ứng thuốc cho bệnh nhân (FHIR R5 AllergyIntolerance). Dùng trong HIS để xây dựng hồ sơ dị ứng.',
+      category: 'healthcare',
+      parameters: [
+        { name: 'action', type: 'string', description: 'add | list | remove', required: true, enum: ['add', 'list', 'remove'] },
+        { name: 'patientId', type: 'string', description: 'ID bệnh nhân', required: true },
+        { name: 'substance', type: 'string', description: 'Tên hoạt chất gây dị ứng (e.g. "amoxicillin", "aspirin")', required: false },
+        { name: 'substanceCode', type: 'string', description: 'Mã RxNorm hoạt chất (nếu biết)', required: false },
+        { name: 'criticality', type: 'string', description: 'Mức nguy hiểm: low, high, unable-to-assess', required: false, enum: ['low', 'high', 'unable-to-assess'] },
+        { name: 'reactions', type: 'array', description: 'Danh sách phản ứng [{manifestation, severity}]', required: false },
+        { name: 'recordedBy', type: 'string', description: 'Tên bác sĩ ghi nhận', required: false },
+        { name: 'note', type: 'string', description: 'Ghi chú thêm', required: false },
+        { name: 'allergyId', type: 'string', description: 'ID dị ứng (cho action remove)', required: false },
+      ],
+      returns: { name: 'result', type: 'object', description: 'FHIR AllergyIntolerance resource hoặc danh sách' },
+    },
+    {
+      name: 'prescription_alert_check',
+      description: 'Kiểm tra đơn thuốc so với tiền sử dị ứng, sinh cảnh báo lâm sàng (FHIR R5 DetectedIssue). Gọi TRƯỚC khi lưu đơn thuốc trong HIS.',
+      category: 'healthcare',
+      parameters: [
+        { name: 'patientId', type: 'string', description: 'ID bệnh nhân', required: true },
+        { name: 'medications', type: 'array', description: 'Danh sách thuốc [{medicationName, dosageText?, route?, reasonCode?, reasonDisplay?, prescriberName?}]', required: true },
+      ],
+      returns: { name: 'alerts', type: 'object', description: 'ClinicalAlert chứa DetectedIssue[] và Bundle FHIR R5' },
+    },
+    {
+      name: 'prescription_quick_check',
+      description: 'Kiểm tra nhanh một thuốc duy nhất với tiền sử dị ứng bệnh nhân. Dùng khi bác sĩ vừa chọn thuốc trong UI.',
+      category: 'healthcare',
+      parameters: [
+        { name: 'patientId', type: 'string', description: 'ID bệnh nhân', required: true },
+        { name: 'medicationName', type: 'string', description: 'Tên thuốc cần kiểm tra', required: true },
+      ],
+      returns: { name: 'alert', type: 'object', description: 'ClinicalAlert cho thuốc đó' },
+    },
+    {
+      name: 'drug_substance_lookup',
+      description: 'Tra cứu hoạt chất (active ingredients) của một thuốc từ cơ sở dữ liệu RxNorm.',
+      category: 'healthcare',
+      parameters: [
+        { name: 'query', type: 'string', description: 'Tên thuốc hoặc mã RxNorm', required: true },
+      ],
+      returns: { name: 'drug', type: 'object', description: 'Thông tin thuốc và danh sách hoạt chất' },
+    },
+    // ─── Knowledge Pack Tools – Tra cứu dữ liệu từ knowledge packs ──
+    {
+      name: 'drug_interaction_check',
+      description: 'Kiểm tra tương tác thuốc-thuốc (drug-drug interaction) từ knowledge pack ICD-10 Drug Interactions. Trả về mức độ nghiêm trọng, cơ chế, và khuyến cáo.',
+      category: 'healthcare',
+      parameters: [
+        { name: 'drugA', type: 'string', description: 'Tên hoạt chất/thuốc thứ nhất', required: true },
+        { name: 'drugB', type: 'string', description: 'Tên hoạt chất/thuốc thứ hai (nếu kiểm tra cặp). Bỏ trống để xem tất cả tương tác của drugA.', required: false },
+      ],
+      returns: { name: 'interactions', type: 'object', description: 'Danh sách tương tác thuốc' },
+    },
+    {
+      name: 'icd10_contraindication_check',
+      description: 'Kiểm tra chống chỉ định thuốc theo mã bệnh ICD-10. Ví dụ: bệnh nhân loét dạ dày (K25) không được dùng NSAIDs.',
+      category: 'healthcare',
+      parameters: [
+        { name: 'icd10Code', type: 'string', description: 'Mã ICD-10 (e.g. "K25", "J45", "N17")', required: true },
+        { name: 'substance', type: 'string', description: 'Tên hoạt chất cần kiểm tra (nếu muốn kiểm tra thuốc cụ thể)', required: false },
+      ],
+      returns: { name: 'contraindications', type: 'object', description: 'Danh sách chống chỉ định' },
+    },
+    {
+      name: 'vn_formulary_lookup',
+      description: 'Tra cứu danh mục thuốc Việt Nam (VN Drug Formulary). Tìm theo tên biệt dược, tên generic, hoặc nhóm dược lý. Bao gồm thông tin BHYT.',
+      category: 'healthcare',
+      parameters: [
+        { name: 'query', type: 'string', description: 'Tên thuốc, hoạt chất, hoặc nhóm dược lý cần tra cứu', required: true },
+      ],
+      returns: { name: 'drugs', type: 'object', description: 'Danh sách thuốc phù hợp từ danh mục VN' },
     },
   ],
   config: [
@@ -561,4 +658,233 @@ export const healthcareSkill = defineSkill(manifest, {
       note: 'This is a subset. Connect to a full ICD-10 API for complete coverage.',
     };
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // Clinical Alert Tools – Cảnh báo lâm sàng (HL7 FHIR R5)
+  // ═══════════════════════════════════════════════════════════
+
+  async allergy_record(args) {
+    const action = args.action as string;
+    const patientId = args.patientId as string;
+
+    switch (action) {
+      case 'add': {
+        const substance = args.substance as string;
+        if (!substance) return { error: 'Thiếu tên hoạt chất (substance)' };
+
+        const allergyResource = buildAllergyIntolerance({
+          patientId,
+          substance,
+          substanceCode: args.substanceCode as string | undefined,
+          criticality: args.criticality as 'low' | 'high' | 'unable-to-assess' | undefined,
+          reactions: args.reactions as Array<{ manifestation: string; severity?: 'mild' | 'moderate' | 'severe' }> | undefined,
+          recordedBy: args.recordedBy as string | undefined,
+          note: args.note as string | undefined,
+        });
+
+        const saved = addAllergy(patientId, allergyResource);
+        return {
+          action: 'added',
+          allergy: saved,
+          message: `✅ Đã ghi nhận dị ứng "${substance}" cho bệnh nhân ${patientId}.`,
+        };
+      }
+      case 'list': {
+        const activeOnly = true;
+        const allergies = activeOnly
+          ? getActiveAllergies(patientId)
+          : getAllAllergies(patientId);
+        return {
+          patientId,
+          count: allergies.length,
+          allergies,
+          message: allergies.length > 0
+            ? `Bệnh nhân có ${allergies.length} dị ứng đang hoạt động.`
+            : 'Bệnh nhân chưa có tiền sử dị ứng nào được ghi nhận.',
+        };
+      }
+      case 'remove': {
+        const allergyId = args.allergyId as string;
+        if (!allergyId) return { error: 'Thiếu allergyId' };
+        const removed = removeAllergy(patientId, allergyId);
+        return {
+          action: removed ? 'removed' : 'not_found',
+          message: removed
+            ? `Đã đánh dấu dị ứng ${allergyId} là entered-in-error.`
+            : `Không tìm thấy dị ứng ${allergyId}.`,
+        };
+      }
+      default:
+        return { error: `Action không hợp lệ: ${action}` };
+    }
+  },
+
+  async prescription_alert_check(args) {
+    const patientId = args.patientId as string;
+    const medications = args.medications as Array<{
+      medicationName: string;
+      dosageText?: string;
+      route?: string;
+      reasonCode?: string;
+      reasonDisplay?: string;
+      prescriberName?: string;
+    }>;
+
+    if (!medications || medications.length === 0) {
+      return { error: 'Danh sách thuốc trống' };
+    }
+
+    // Xây dựng MedicationRequest FHIR R5
+    const medRequests: MedicationRequest[] = medications.map(m =>
+      buildMedicationRequest({
+        patientId,
+        medicationName: m.medicationName,
+        dosageText: m.dosageText,
+        route: m.route,
+        reasonCode: m.reasonCode,
+        reasonDisplay: m.reasonDisplay,
+        prescriberName: m.prescriberName,
+      })
+    );
+
+    const result = checkPrescriptionAlerts(patientId, medRequests);
+    return {
+      ...result,
+      instruction: result.hasAlerts
+        ? '🛑 ĐƠN THUỐC CÓ CẢNH BÁO. Vui lòng xem xét trước khi xác nhận lưu đơn.'
+        : '✅ Đơn thuốc an toàn, không phát hiện xung đột dị ứng.',
+    };
+  },
+
+  async prescription_quick_check(args) {
+    const patientId = args.patientId as string;
+    const medicationName = args.medicationName as string;
+    return checkSingleMedication(patientId, medicationName);
+  },
+
+  async drug_substance_lookup(args) {
+    const query = args.query as string;
+    const drug = lookupDrug(query);
+    if (!drug) {
+      return {
+        found: false,
+        query,
+        message: `Không tìm thấy thuốc "${query}" trong CSDL. Kết nối RxNorm API để tra cứu đầy đủ.`,
+      };
+    }
+    return {
+      found: true,
+      drugCode: drug.drugCode,
+      drugDisplay: drug.drugDisplay,
+      substances: drug.substances,
+      substanceNames: drug.substances.map(s => s.text),
+    };
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // Knowledge Pack Tools – Tra cứu dữ liệu từ knowledge packs
+  // ═══════════════════════════════════════════════════════════
+
+  async drug_interaction_check(args) {
+    const drugA = args.drugA as string;
+    const drugB = args.drugB as string | undefined;
+
+    if (drugB) {
+      const interaction = checkDrugInteraction(drugA, drugB);
+      if (!interaction) {
+        return {
+          found: false,
+          drugA,
+          drugB,
+          message: `Không tìm thấy tương tác giữa "${drugA}" và "${drugB}" trong CSDL knowledge pack.`,
+        };
+      }
+      return { found: true, interaction };
+    }
+
+    const interactions = findInteractionsFor(drugA);
+    return {
+      substance: drugA,
+      count: interactions.length,
+      interactions,
+      message: interactions.length > 0
+        ? `Tìm thấy ${interactions.length} tương tác cho "${drugA}".`
+        : `Không có tương tác nào được ghi nhận cho "${drugA}" trong CSDL.`,
+    };
+  },
+
+  async icd10_contraindication_check(args) {
+    const icd10Code = args.icd10Code as string;
+    const substance = args.substance as string | undefined;
+
+    if (substance) {
+      const result = isContraindicated(icd10Code, substance);
+      return {
+        icd10Code,
+        substance,
+        contraindicated: result.contraindicated,
+        reason: result.reason ?? null,
+        severity: result.severity ?? null,
+        message: result.contraindicated
+          ? `⚠️ "${substance}" bị CHỐNG CHỈ ĐỊNH cho bệnh nhân có mã ICD-10 ${icd10Code}. Lý do: ${result.reason ?? 'N/A'}`
+          : `✅ "${substance}" không bị chống chỉ định cho mã ICD-10 ${icd10Code} theo CSDL hiện có.`,
+      };
+    }
+
+    const rules = checkContraindicationsForDiagnosis(icd10Code);
+    return {
+      icd10Code,
+      count: rules.length,
+      contraindications: rules,
+      message: rules.length > 0
+        ? `Tìm thấy ${rules.length} quy tắc chống chỉ định cho mã ICD-10 ${icd10Code}.`
+        : `Không tìm thấy chống chỉ định nào cho mã ICD-10 ${icd10Code} trong CSDL.`,
+    };
+  },
+
+  async vn_formulary_lookup(args) {
+    const query = args.query as string;
+    const results = lookupVNFormulary(query);
+    return {
+      query,
+      count: results.length,
+      drugs: results,
+      message: results.length > 0
+        ? `Tìm thấy ${results.length} thuốc phù hợp cho "${query}".`
+        : `Không tìm thấy thuốc "${query}" trong danh mục VN. Thử tìm bằng tên generic hoặc tên biệt dược.`,
+    };
+  },
 });
+
+// ═══════════════════════════════════════════════════════════
+// Knowledge Pack Auto-Loading
+// Tự động nạp dữ liệu từ tất cả knowledge-pack cài đặt
+// vào bộ nhớ clinical-alert khi healthcare skill khởi tạo.
+// ═══════════════════════════════════════════════════════════
+
+let _knowledgePacksLoaded = false;
+
+export async function loadHealthcareKnowledgePacks(pluginLoader: PluginLoader): Promise<{ loaded: string[]; errors: string[] }> {
+  if (_knowledgePacksLoaded) return { loaded: [], errors: [] };
+
+  const packs = pluginLoader.getKnowledgePacksByDomain('healthcare');
+  const loaded: string[] = [];
+  const errors: string[] = [];
+
+  for (const pack of packs) {
+    for (const ds of pack.dataSources) {
+      try {
+        ingestDataSource(ds.source.kind, ds.data);
+        loaded.push(`${pack.manifest.name}/${ds.source.id}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`${pack.manifest.name}/${ds.source.id}: ${msg}`);
+      }
+    }
+  }
+
+  _knowledgePacksLoaded = true;
+  const stats = getIngestedStats();
+  console.log(`[Healthcare] Knowledge packs loaded: ${loaded.length} sources. Stats:`, stats);
+  return { loaded, errors };
+}

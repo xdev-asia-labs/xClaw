@@ -1,0 +1,354 @@
+{
+    "_meta": {
+        "description": "Chống chỉ định thuốc theo mã bệnh ICD-10. Mỗi entry ánh xạ một hoặc nhiều mã ICD-10 đến danh sách thuốc không được sử dụng.",
+        "standard": "WHO ICD-10 2019",
+        "version": "2025-Q4",
+        "totalEntries": 20
+    },
+    "contraindications": [
+        {
+            "id": "CI-001",
+            "icd10": [
+                "K25",
+                "K26",
+                "K27",
+                "K28"
+            ],
+            "icd10Display": "Loét dạ dày-tá tràng",
+            "contraindicated": [
+                {
+                    "substance": "aspirin",
+                    "rxnorm": "1191",
+                    "reason": "NSAID gây loét và xuất huyết tiêu hóa"
+                },
+                {
+                    "substance": "ibuprofen",
+                    "rxnorm": "5640",
+                    "reason": "NSAID gây loét và xuất huyết tiêu hóa"
+                },
+                {
+                    "substance": "naproxen",
+                    "rxnorm": "7052",
+                    "reason": "NSAID gây loét và xuất huyết tiêu hóa"
+                },
+                {
+                    "substance": "diclofenac",
+                    "rxnorm": "3640",
+                    "reason": "NSAID gây loét và xuất huyết tiêu hóa"
+                },
+                {
+                    "substance": "ketorolac",
+                    "rxnorm": "6691",
+                    "reason": "Nguy cơ xuất huyết GI rất cao"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-002",
+            "icd10": [
+                "N17",
+                "N18",
+                "N19"
+            ],
+            "icd10Display": "Suy thận cấp / mạn",
+            "contraindicated": [
+                {
+                    "substance": "metformin",
+                    "rxnorm": "6809",
+                    "reason": "Tích lũy → nhiễm toan lactic. CCĐ khi eGFR < 30"
+                },
+                {
+                    "substance": "ibuprofen",
+                    "rxnorm": "5640",
+                    "reason": "NSAID gây co mạch thận → giảm GFR thêm"
+                },
+                {
+                    "substance": "naproxen",
+                    "rxnorm": "7052",
+                    "reason": "NSAID gây co mạch thận"
+                },
+                {
+                    "substance": "gentamicin",
+                    "rxnorm": "4597",
+                    "reason": "Độc thận (nephrotoxic)"
+                },
+                {
+                    "substance": "lithium",
+                    "rxnorm": "8356",
+                    "reason": "Thanh thải giảm → ngộ độc"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-003",
+            "icd10": [
+                "J45"
+            ],
+            "icd10Display": "Hen phế quản",
+            "contraindicated": [
+                {
+                    "substance": "aspirin",
+                    "rxnorm": "1191",
+                    "reason": "Aspirin-exacerbated respiratory disease (AERD)"
+                },
+                {
+                    "substance": "ibuprofen",
+                    "rxnorm": "5640",
+                    "reason": "NSAID có thể gây co thắt phế quản ở bệnh nhân nhạy cảm"
+                },
+                {
+                    "substance": "propranolol",
+                    "rxnorm": "8787",
+                    "reason": "Beta-blocker không chọn lọc → co thắt phế quản"
+                },
+                {
+                    "substance": "atenolol",
+                    "rxnorm": "1202",
+                    "reason": "Beta-blocker → co thắt phế quản (thận trọng)"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-004",
+            "icd10": [
+                "I48"
+            ],
+            "icd10Display": "Rung nhĩ (Atrial fibrillation)",
+            "contraindicated": [
+                {
+                    "substance": "digoxin_overdose",
+                    "rxnorm": "3407",
+                    "reason": "Nguy cơ ngộ độc digitalis → loạn nhịp nặng hơn (thận trọng liều)"
+                }
+            ],
+            "severity": "moderate",
+            "notes": "Digoxin vẫn dùng trong rung nhĩ nhưng cần theo dõi nồng độ chặt chẽ"
+        },
+        {
+            "id": "CI-005",
+            "icd10": [
+                "E10",
+                "E11"
+            ],
+            "icd10Display": "Đái tháo đường type 1 & 2",
+            "contraindicated": [
+                {
+                    "substance": "corticosteroid-systemic",
+                    "rxnorm": "local",
+                    "reason": "Tăng đường huyết đáng kể"
+                },
+                {
+                    "substance": "thiazide-high-dose",
+                    "rxnorm": "local",
+                    "reason": "Thiazide liều cao làm tăng đường huyết + giảm kali"
+                }
+            ],
+            "severity": "moderate",
+            "notes": "Corticosteroid có thể dùng ngắn ngày nếu bắt buộc, cần theo dõi đường huyết"
+        },
+        {
+            "id": "CI-006",
+            "icd10": [
+                "I10",
+                "I11",
+                "I12",
+                "I13"
+            ],
+            "icd10Display": "Tăng huyết áp",
+            "contraindicated": [
+                {
+                    "substance": "ibuprofen",
+                    "rxnorm": "5640",
+                    "reason": "NSAID giữ nước + giảm hiệu quả thuốc hạ áp"
+                },
+                {
+                    "substance": "pseudoephedrine",
+                    "rxnorm": "8896",
+                    "reason": "Thuốc co mạch → tăng huyết áp"
+                },
+                {
+                    "substance": "phenylephrine",
+                    "rxnorm": "8163",
+                    "reason": "Thuốc co mạch → tăng huyết áp"
+                }
+            ],
+            "severity": "moderate"
+        },
+        {
+            "id": "CI-007",
+            "icd10": [
+                "K70",
+                "K71",
+                "K72",
+                "K73",
+                "K74"
+            ],
+            "icd10Display": "Bệnh gan (viêm gan, xơ gan, suy gan)",
+            "contraindicated": [
+                {
+                    "substance": "acetaminophen",
+                    "rxnorm": "161",
+                    "reason": "Độc gan. CCĐ liều > 2g/ngày khi suy gan; CCĐ tuyệt đối khi ALT > 10x"
+                },
+                {
+                    "substance": "methotrexate",
+                    "rxnorm": "6851",
+                    "reason": "Độc gan nghiêm trọng"
+                },
+                {
+                    "substance": "isoniazid",
+                    "rxnorm": "6038",
+                    "reason": "Gây viêm gan do thuốc"
+                },
+                {
+                    "substance": "simvastatin",
+                    "rxnorm": "36567",
+                    "reason": "Statin → tổn thương gan thêm khi ALT > 3x"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-008",
+            "icd10": [
+                "O00-O09",
+                "O10-O16"
+            ],
+            "icd10Display": "Thai kỳ (Pregnancy)",
+            "contraindicated": [
+                {
+                    "substance": "warfarin",
+                    "rxnorm": "11289",
+                    "reason": "Gây quái thai (teratogenic), đặc biệt tam cá nguyệt 1"
+                },
+                {
+                    "substance": "methotrexate",
+                    "rxnorm": "6851",
+                    "reason": "Gây sẩy thai và dị tật bẩm sinh"
+                },
+                {
+                    "substance": "enalapril",
+                    "rxnorm": "4053",
+                    "reason": "ACE inhibitor gây dị tật thận thai nhi"
+                },
+                {
+                    "substance": "lisinopril",
+                    "rxnorm": "29046",
+                    "reason": "ACE inhibitor gây dị tật thận thai nhi"
+                },
+                {
+                    "substance": "isotretinoin",
+                    "rxnorm": "6064",
+                    "reason": "Gây quái thai nghiêm trọng"
+                },
+                {
+                    "substance": "ibuprofen",
+                    "rxnorm": "5640",
+                    "reason": "NSAID sau tuần 20 → thiểu ối. Sau tuần 30 → đóng ống động mạch sớm"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-009",
+            "icd10": [
+                "I50"
+            ],
+            "icd10Display": "Suy tim",
+            "contraindicated": [
+                {
+                    "substance": "ibuprofen",
+                    "rxnorm": "5640",
+                    "reason": "NSAID giữ nước → mất bù suy tim"
+                },
+                {
+                    "substance": "naproxen",
+                    "rxnorm": "7052",
+                    "reason": "NSAID giữ nước → mất bù suy tim"
+                },
+                {
+                    "substance": "verapamil",
+                    "rxnorm": "11170",
+                    "reason": "Giảm co bóp cơ tim → nặng suy tim"
+                },
+                {
+                    "substance": "diltiazem",
+                    "rxnorm": "3443",
+                    "reason": "Giảm co bóp cơ tim"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-010",
+            "icd10": [
+                "G40"
+            ],
+            "icd10Display": "Động kinh",
+            "contraindicated": [
+                {
+                    "substance": "tramadol",
+                    "rxnorm": "10689",
+                    "reason": "Hạ ngưỡng co giật"
+                },
+                {
+                    "substance": "bupropion",
+                    "rxnorm": "42347",
+                    "reason": "Hạ ngưỡng co giật"
+                },
+                {
+                    "substance": "ciprofloxacin",
+                    "rxnorm": "2551",
+                    "reason": "Fluoroquinolone hạ ngưỡng co giật"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-011",
+            "icd10": [
+                "D69"
+            ],
+            "icd10Display": "Rối loạn đông máu / Giảm tiểu cầu",
+            "contraindicated": [
+                {
+                    "substance": "aspirin",
+                    "rxnorm": "1191",
+                    "reason": "Ức chế tiểu cầu → tăng chảy máu"
+                },
+                {
+                    "substance": "ibuprofen",
+                    "rxnorm": "5640",
+                    "reason": "Ức chế COX → giảm chức năng tiểu cầu"
+                },
+                {
+                    "substance": "heparin",
+                    "rxnorm": "5224",
+                    "reason": "Tăng nguy cơ xuất huyết ở bệnh nhân giảm tiểu cầu"
+                }
+            ],
+            "severity": "high"
+        },
+        {
+            "id": "CI-012",
+            "icd10": [
+                "F31",
+                "F32",
+                "F33"
+            ],
+            "icd10Display": "Rối loạn lưỡng cực / Trầm cảm",
+            "contraindicated": [
+                {
+                    "substance": "corticosteroid-systemic",
+                    "rxnorm": "local",
+                    "reason": "Gây kích động, loạn thần, thay đổi tâm trạng ở bệnh nhân rối loạn khí sắc"
+                }
+            ],
+            "severity": "moderate",
+            "notes": "Nếu bắt buộc dùng corticoid, cần theo dõi tâm thần chặt chẽ"
+        }
+    ]
+}

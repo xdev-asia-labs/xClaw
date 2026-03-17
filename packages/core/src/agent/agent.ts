@@ -5,7 +5,7 @@
 import type {
   AgentConfig, LLMMessage, IncomingMessage, OutgoingMessage,
   ConversationMessage, ToolCall, Workflow,
-} from '@autox/shared';
+} from '@xclaw/shared';
 import { EventBus } from './event-bus.js';
 import { LLMRouter, type LLMAdapter } from '../llm/llm-router.js';
 import { MemoryManager, InMemoryStore } from '../memory/memory-manager.js';
@@ -26,6 +26,8 @@ export class Agent {
   private config: AgentConfig;
   private llmAdapter: LLMAdapter;
   private ragContextProvider?: (query: string) => Promise<string>;
+  private ragDetailedProvider?: (query: string) => Promise<{ context: string; chunks: { content: string; documentId: string; collectionId: string; score: number }[] }>;
+  private _lastRAGChunks?: { content: string; documentId: string; collectionId: string; score: number }[];
 
   constructor(config: AgentConfig) {
     this.config = config;
@@ -69,8 +71,8 @@ export class Agent {
     // Build message array for LLM
     const messages = await this.buildMessages(sessionId, userMessage);
 
-    // Get available tools
-    const toolDefs = this.tools.getAllDefinitions();
+    // Get relevant tools (filtered to avoid overwhelming smaller models)
+    const toolDefs = this.tools.getRelevantDefinitions(userMessage);
 
     // Agent loop with tool calling
     let iterations = 0;
@@ -90,16 +92,30 @@ export class Agent {
       });
 
       // Add tool results
+      let directContent = '';
       for (const result of results) {
-        messages.push({
-          role: 'tool',
-          content: JSON.stringify(result.result),
-          toolCallId: result.toolCallId,
-        });
+        const resultStr = typeof result.result === 'string' ? result.result : JSON.stringify(result.result);
+        if (resultStr.includes('```xclaw-chart')) {
+          directContent += '\n\n' + resultStr + '\n\n';
+          messages.push({
+            role: 'tool',
+            content: 'Chart has been rendered to the user successfully.',
+            toolCallId: result.toolCallId,
+          });
+        } else {
+          messages.push({
+            role: 'tool',
+            content: JSON.stringify(result.result),
+            toolCallId: result.toolCallId,
+          });
+        }
       }
 
       // Continue conversation
       response = await this.llmAdapter.chat(messages, toolDefs);
+      if (directContent) {
+        response.content = directContent + (response.content || '');
+      }
     }
 
     const assistantContent = response.content || '(No response)';
@@ -125,7 +141,7 @@ export class Agent {
 
   // ─── Streaming Chat ───────────────────────────────────────
 
-  async *chatStream(sessionId: string, userMessage: string): AsyncGenerator<{ type: 'delta' | 'tool' | 'done'; content: string }> {
+  async *chatStream(sessionId: string, userMessage: string): AsyncGenerator<{ type: 'delta' | 'tool' | 'done' | 'rag_context'; content: string }> {
     // Save user message to history
     this.memory.addMessage(sessionId, {
       id: crypto.randomUUID(),
@@ -136,7 +152,13 @@ export class Agent {
     });
 
     const messages = await this.buildMessages(sessionId, userMessage);
-    const toolDefs = this.tools.getAllDefinitions();
+    const toolDefs = this.tools.getRelevantDefinitions(userMessage);
+
+    // Emit RAG context if available
+    if (this._lastRAGChunks && this._lastRAGChunks.length > 0) {
+      yield { type: 'rag_context', content: JSON.stringify(this._lastRAGChunks) };
+      this._lastRAGChunks = undefined;
+    }
 
     // Check if adapter supports streaming
     if (!this.llmAdapter.chatStream) {
@@ -171,14 +193,25 @@ export class Agent {
             });
 
             for (const result of results) {
-              messages.push({
-                role: 'tool',
-                content: JSON.stringify(result.result),
-                toolCallId: result.toolCallId,
-              });
+              const resultStr = typeof result.result === 'string' ? result.result : JSON.stringify(result.result);
+              // If the tool result contains renderable content (chart, PDF link), emit it directly to the client
+              if (resultStr.includes('```xclaw-chart')) {
+                yield { type: 'delta', content: '\n\n' + resultStr + '\n\n' };
+                fullContent += '\n\n' + resultStr + '\n\n';
+                messages.push({
+                  role: 'tool',
+                  content: 'Chart has been rendered to the user successfully.',
+                  toolCallId: result.toolCallId,
+                });
+              } else {
+                messages.push({
+                  role: 'tool',
+                  content: JSON.stringify(result.result),
+                  toolCallId: result.toolCallId,
+                });
+              }
             }
             // Continue the loop for the next LLM call
-            fullContent += iterContent;
             iterContent = '';
             break;
           } else {
@@ -247,6 +280,10 @@ export class Agent {
     this.ragContextProvider = provider;
   }
 
+  setRAGDetailedProvider(provider: (query: string) => Promise<{ context: string; chunks: { content: string; documentId: string; collectionId: string; score: number }[] }>): void {
+    this.ragDetailedProvider = provider;
+  }
+
   // ─── Internal ───────────────────────────────────────────
 
   private async buildMessages(sessionId: string, currentMessage: string): Promise<LLMMessage[]> {
@@ -268,7 +305,15 @@ export class Agent {
     }
 
     // Inject RAG context if provider is set
-    if (this.ragContextProvider) {
+    if (this.ragDetailedProvider) {
+      try {
+        const result = await this.ragDetailedProvider(currentMessage);
+        if (result.context) {
+          systemParts.push('\n\n## Knowledge Base Context:\n' + result.context);
+          this._lastRAGChunks = result.chunks;
+        }
+      } catch { /* non-critical */ }
+    } else if (this.ragContextProvider) {
       try {
         const ragContext = await this.ragContextProvider(currentMessage);
         if (ragContext) {

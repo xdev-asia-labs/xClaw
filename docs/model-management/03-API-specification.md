@@ -1,5 +1,5 @@
 # API Specification
-## AutoX Model Management Skill
+## xClaw Model Management Skill
 **Version:** 3.0.0  
 **Date:** 2026-03-16  
 **Base URL:** `ws://127.0.0.1:18789/ws` (WebSocket) | `http://127.0.0.1:18789` (REST)
@@ -675,8 +675,8 @@ List all knowledge collections.
     "collections": [
       {
         "id": "coll_abc123",
-        "name": "AutoX Documentation",
-        "description": "Official AutoX docs and guides",
+        "name": "xClaw Documentation",
+        "description": "Official xClaw docs and guides",
         "documentCount": 15,
         "chunkCount": 342,
         "totalSize": "2.4 MB",
@@ -698,8 +698,8 @@ Create a knowledge collection.
 **Request Body:**
 ```json
 {
-  "name": "AutoX Documentation",
-  "description": "Official AutoX docs and guides",
+  "name": "xClaw Documentation",
+  "description": "Official xClaw docs and guides",
   "chunkConfig": {
     "maxTokens": 512,
     "overlap": 50,
@@ -732,7 +732,7 @@ Upload document to a collection. Triggers ingestion pipeline (parse â†’ chunk â†
 {
   "source": "file",
   "name": "README.md",
-  "content": "# AutoX\n\nAutoX is an AI Agent platform...",
+  "content": "# xClaw\n\nxClaw is an AI Agent platform...",
   "mimeType": "text/markdown"
 }
 ```
@@ -803,7 +803,7 @@ View chunks of a document (for debugging / review).
       {
         "id": "chunk_001",
         "index": 0,
-        "content": "# AutoX\n\nAutoX is an AI Agent platform that...",
+        "content": "# xClaw\n\nxClaw is an AI Agent platform that...",
         "tokenCount": 487,
         "hasEmbedding": true
       }
@@ -821,7 +821,7 @@ Semantic search across knowledge base.
 **Request Body:**
 ```json
 {
-  "query": "How does AutoX handle tool calling?",
+  "query": "How does xClaw handle tool calling?",
   "collectionIds": ["coll_abc123"],
   "topK": 5,
   "scoreThreshold": 0.7
@@ -846,13 +846,13 @@ Semantic search across knowledge base.
         "documentId": "doc_xyz789",
         "documentName": "README.md",
         "collectionId": "coll_abc123",
-        "collectionName": "AutoX Documentation",
-        "content": "AutoX uses tool calling via SkillContext.toolRegistry...",
+        "collectionName": "xClaw Documentation",
+        "content": "xClaw uses tool calling via SkillContext.toolRegistry...",
         "score": 0.89,
         "tokenCount": 312
       }
     ],
-    "query": "How does AutoX handle tool calling?",
+    "query": "How does xClaw handle tool calling?",
     "embeddingModel": "nomic-embed-text",
     "searchLatencyMs": 45
   }

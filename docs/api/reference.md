@@ -1,6 +1,6 @@
 # API Reference
 
-AutoX exposes a REST API and WebSocket endpoint. The server runs on port `3001` by default.
+xClaw exposes a REST API and WebSocket endpoint. The server runs on port `3001` by default.
 
 ## Base URL
 
@@ -26,7 +26,7 @@ GET /api/health
 ```json
 {
   "status": "ok",
-  "agent": "AutoX",
+  "agent": "xClaw",
   "uptime": 123.456
 }
 ```
@@ -322,8 +322,8 @@ Returns the current agent configuration. API keys are masked.
 **Response:**
 ```json
 {
-  "id": "autox-main",
-  "name": "AutoX",
+  "id": "xclaw-main",
+  "name": "xClaw",
   "persona": "A helpful AI assistant",
   "llm": {
     "provider": "openai",

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="56" fill="url(#g1)" opacity="0.1"/>
+  <circle cx="60" cy="60" r="56" stroke="url(#g1)" stroke-width="2" fill="none"/>
+  <!-- Lightning bolt / X shape -->
+  <path d="M72 28L48 58h16L44 92l28-30H56L72 28z" fill="url(#g1)"/>
+  <!-- Neural dots -->
+  <circle cx="30" cy="40" r="4" fill="url(#g2)" opacity="0.7"/>
+  <circle cx="90" cy="40" r="4" fill="url(#g2)" opacity="0.7"/>
+  <circle cx="30" cy="80" r="4" fill="url(#g2)" opacity="0.7"/>
+  <circle cx="90" cy="80" r="4" fill="url(#g2)" opacity="0.7"/>
+  <!-- Neural connections -->
+  <line x1="34" y1="40" x2="48" y2="58" stroke="url(#g2)" stroke-width="1" opacity="0.4"/>
+  <line x1="86" y1="40" x2="72" y2="28" stroke="url(#g2)" stroke-width="1" opacity="0.4"/>
+  <line x1="34" y1="80" x2="44" y2="92" stroke="url(#g2)" stroke-width="1" opacity="0.4"/>
+  <line x1="86" y1="80" x2="72" y2="62" stroke="url(#g2)" stroke-width="1" opacity="0.4"/>
+</svg>

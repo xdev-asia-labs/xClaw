@@ -1,0 +1,86 @@
+# Installation
+
+xClaw can be installed from source or run with Docker.
+
+## From Source (Development)
+
+Best for development and customization.
+
+```bash
+git clone https://github.com/tdduydev/xClaw.git
+cd xClaw
+npm install
+cp .env.example .env
+# Edit .env with your API keys
+npm run dev
+```
+
+## Docker Compose (Recommended for Production)
+
+The fastest way to deploy xClaw.
+
+```bash
+git clone https://github.com/tdduydev/xClaw.git
+cd xClaw
+cp .env.example .env
+# Edit .env with your API keys
+
+docker compose up -d
+```
+
+xClaw will be available at `http://localhost:18789`.
+
+### Docker Compose Configuration
+
+```yaml
+# docker-compose.yml
+services:
+  xclaw:
+    build: .
+    ports:
+      - "18789:18789"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+```
+
+## Docker Build Only
+
+Build the production Docker image:
+
+```bash
+docker build -t xclaw .
+docker run -p 18789:18789 --env-file .env xclaw
+```
+
+The multi-stage Dockerfile:
+1. **Base** — Installs dependencies
+2. **Builder** — Compiles all TypeScript packages
+3. **Server** — Minimal production image with compiled output
+
+## npm Packages
+
+Install individual packages for use in your own projects:
+
+```bash
+npm install @xclaw/core @xclaw/shared
+```
+
+| Package | Description |
+|---------|-------------|
+| `@xclaw/shared` | Type definitions, constants, interfaces |
+| `@xclaw/core` | Agent engine, LLM router, memory, tools |
+| `@xclaw/skills` | Pre-built AI agent skill packs |
+| `@xclaw/gateway` | HTTP/WebSocket gateway server |
+| `@xclaw/cli` | Command-line interface |
+
+## System Requirements
+
+| Requirement | Minimum | Recommended |
+|-------------|---------|-------------|
+| Node.js | 20.x | 22.x |
+| RAM | 512 MB | 2 GB+ |
+| Disk | 200 MB | 1 GB+ |
+| OS | macOS, Linux, Windows (WSL) | Linux |

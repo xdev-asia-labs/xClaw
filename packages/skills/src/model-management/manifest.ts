@@ -1,11 +1,11 @@
-import type { SkillManifest } from '@autox/shared';
+import type { SkillManifest } from '@xclaw/shared';
 
 export const modelManagementManifest: SkillManifest = {
   id: 'model-management',
   name: 'Model Management',
   version: '3.0.0',
   description: 'Full model lifecycle management with MCP server integration and RAG knowledge base',
-  author: 'AutoX',
+  author: 'xClaw',
   category: 'custom',
   tags: ['models', 'llm', 'ollama', 'mcp', 'rag', 'knowledge'],
   tools: [

@@ -4,10 +4,12 @@ export { LLMRouter, OpenAIAdapter, AnthropicAdapter } from './llm/llm-router.js'
 export { MemoryManager, InMemoryStore } from './memory/memory-manager.js';
 export { ToolRegistry } from './tools/tool-registry.js';
 export { SkillManager, defineSkill } from './skills/skill-manager.js';
+export { SkillConfigStore } from './skills/skill-config-store.js';
+export type { SkillConfigEntry } from './skills/skill-config-store.js';
 export { WorkflowEngine } from './workflow/workflow-engine.js';
 export type { LLMAdapter } from './llm/llm-router.js';
 export type { ToolExecutor } from './tools/tool-registry.js';
 export type { SkillPlugin, SkillContext } from './skills/skill-manager.js';
 export type { MemoryStore } from './memory/memory-manager.js';
 export { PluginLoader } from './plugins/plugin-loader.js';
-export type { LoadedPlugin } from './plugins/plugin-loader.js';
+export type { LoadedPlugin, LoadedKnowledgePack, LoadedDataSource } from './plugins/plugin-loader.js';

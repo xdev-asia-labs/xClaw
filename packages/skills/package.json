@@ -1,8 +1,16 @@
 {
-    "name": "@autox/skills",
+    "name": "@xclaw/skills",
     "version": "0.1.0",
-    "private": true,
     "type": "module",
+    "description": "Pre-built AI agent skill packs for xClaw — Programming, Healthcare, Analytics, DevOps, and more",
+    "license": "MIT",
+    "homepage": "https://ai.xdev.asia",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/tdduydev/xClaw.git",
+        "directory": "packages/skills"
+    },
+    "keywords": ["xclaw", "ai", "agent", "skills", "programming", "healthcare", "analytics"],
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "exports": {
@@ -11,20 +19,23 @@
             "types": "./dist/index.d.ts"
         }
     },
+    "files": ["dist", "README.md"],
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@autox/shared": "*",
-        "@autox/core": "*",
-        "pg": "^8.13.0",
-        "mongodb": "^6.12.0",
+        "@xclaw/core": "^0.1.0",
+        "@xclaw/shared": "^0.1.0",
         "@modelcontextprotocol/sdk": "^1.12.1",
-        "pdf-parse": "^1.1.1"
+        "exceljs": "^4.4.0",
+        "mammoth": "^1.12.0",
+        "mongodb": "^6.12.0",
+        "pdf-parse": "^1.1.1",
+        "pg": "^8.13.0"
     },
     "devDependencies": {
-        "typescript": "^5.7.0",
-        "@types/pg": "^8.11.0"
+        "@types/pg": "^8.11.0",
+        "typescript": "^5.7.0"
     }
 }

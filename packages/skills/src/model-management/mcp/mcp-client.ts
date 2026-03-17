@@ -46,7 +46,7 @@ export class MCPClient {
       env: { ...process.env, ...(server.env ?? {}) } as Record<string, string>,
     });
 
-    const client = new Client({ name: `autox-${server.name}`, version: '1.0.0' });
+    const client = new Client({ name: `xclaw-${server.name}`, version: '1.0.0' });
 
     const timeoutId = setTimeout(() => {
       transport.close?.();
@@ -86,7 +86,7 @@ export class MCPClient {
     const { SSEClientTransport } = await import('@modelcontextprotocol/sdk/client/sse.js');
 
     const transport = new SSEClientTransport(new URL(server.url));
-    const client = new Client({ name: `autox-${server.name}`, version: '1.0.0' });
+    const client = new Client({ name: `xclaw-${server.name}`, version: '1.0.0' });
 
     const timeoutId = setTimeout(() => {
       transport.close?.();

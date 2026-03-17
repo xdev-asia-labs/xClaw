@@ -1,0 +1,552 @@
+{
+    "_meta": {
+        "description": "Danh mục thuốc thông dụng VN. Tên biệt dược → hoạt chất, nhóm dược lý, quy cách, liều dùng thường, BHYT.",
+        "source": "Danh mục thuốc BHYT (TT 20/2022/TT-BYT) + Dược thư Quốc gia VN",
+        "version": "2025-Q4",
+        "totalEntries": 40
+    },
+    "drugs": [
+        {
+            "id": "VN-001",
+            "brandName": "Augmentin 625mg",
+            "genericName": "Amoxicillin + Clavulanic acid",
+            "substances": [
+                {
+                    "name": "amoxicillin",
+                    "rxnorm": "723",
+                    "strength": "500mg"
+                },
+                {
+                    "name": "clavulanate",
+                    "rxnorm": "2348",
+                    "strength": "125mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Beta-lactam",
+            "atcCode": "J01CR02",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên x 2-3 lần/ngày, uống cùng bữa ăn",
+            "bhyt": true,
+            "manufacturer": "GSK"
+        },
+        {
+            "id": "VN-002",
+            "brandName": "Amoxicillin 500mg",
+            "genericName": "Amoxicillin",
+            "substances": [
+                {
+                    "name": "amoxicillin",
+                    "rxnorm": "723",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Beta-lactam",
+            "atcCode": "J01CA04",
+            "dosageForm": "Viên nang",
+            "commonDosage": "1 viên x 3 lần/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-003",
+            "brandName": "Cefuroxime 500mg Stada",
+            "genericName": "Cefuroxime",
+            "substances": [
+                {
+                    "name": "cefuroxime",
+                    "rxnorm": "2193",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Cephalosporin thế hệ 2",
+            "atcCode": "J01DC02",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên x 2 lần/ngày, uống sau ăn",
+            "bhyt": true
+        },
+        {
+            "id": "VN-004",
+            "brandName": "Ciprofloxacin 500mg",
+            "genericName": "Ciprofloxacin",
+            "substances": [
+                {
+                    "name": "ciprofloxacin",
+                    "rxnorm": "2551",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Fluoroquinolone",
+            "atcCode": "J01MA02",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên x 2 lần/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-005",
+            "brandName": "Co-trimoxazole 480mg",
+            "genericName": "Sulfamethoxazole + Trimethoprim",
+            "substances": [
+                {
+                    "name": "sulfamethoxazole",
+                    "rxnorm": "10207",
+                    "strength": "400mg"
+                },
+                {
+                    "name": "trimethoprim",
+                    "rxnorm": "10831",
+                    "strength": "80mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Sulfonamide",
+            "atcCode": "J01EE01",
+            "dosageForm": "Viên nén",
+            "commonDosage": "2 viên x 2 lần/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-006",
+            "brandName": "Panadol 500mg",
+            "genericName": "Paracetamol (Acetaminophen)",
+            "substances": [
+                {
+                    "name": "acetaminophen",
+                    "rxnorm": "161",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "Giảm đau, hạ sốt",
+            "atcCode": "N02BE01",
+            "dosageForm": "Viên nén",
+            "commonDosage": "1-2 viên x 3-4 lần/ngày (tối đa 4g/ngày)",
+            "bhyt": true,
+            "manufacturer": "GSK"
+        },
+        {
+            "id": "VN-007",
+            "brandName": "Efferalgan Codeine",
+            "genericName": "Paracetamol + Codeine",
+            "substances": [
+                {
+                    "name": "acetaminophen",
+                    "rxnorm": "161",
+                    "strength": "500mg"
+                },
+                {
+                    "name": "codeine",
+                    "rxnorm": "2670",
+                    "strength": "30mg"
+                }
+            ],
+            "pharmacoGroup": "Giảm đau phối hợp opioid",
+            "atcCode": "N02AJ06",
+            "dosageForm": "Viên sủi",
+            "commonDosage": "1 viên x 3 lần/ngày, tối đa 6 viên/ngày",
+            "bhyt": false,
+            "notes": "Thuốc gây nghiện, cần kê đơn đặc biệt"
+        },
+        {
+            "id": "VN-008",
+            "brandName": "Brufen 400mg",
+            "genericName": "Ibuprofen",
+            "substances": [
+                {
+                    "name": "ibuprofen",
+                    "rxnorm": "5640",
+                    "strength": "400mg"
+                }
+            ],
+            "pharmacoGroup": "NSAID - Kháng viêm không steroid",
+            "atcCode": "M01AE01",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên x 2-3 lần/ngày, uống sau ăn",
+            "bhyt": true
+        },
+        {
+            "id": "VN-009",
+            "brandName": "Voltaren 75mg",
+            "genericName": "Diclofenac",
+            "substances": [
+                {
+                    "name": "diclofenac",
+                    "rxnorm": "3640",
+                    "strength": "75mg"
+                }
+            ],
+            "pharmacoGroup": "NSAID - Kháng viêm không steroid",
+            "atcCode": "M01AB05",
+            "dosageForm": "Viên nén phóng thích chậm",
+            "commonDosage": "1 viên x 2 lần/ngày, uống sau ăn",
+            "bhyt": true,
+            "manufacturer": "Novartis"
+        },
+        {
+            "id": "VN-010",
+            "brandName": "Aspirin pH8 81mg",
+            "genericName": "Aspirin",
+            "substances": [
+                {
+                    "name": "aspirin",
+                    "rxnorm": "1191",
+                    "strength": "81mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng kết tập tiểu cầu",
+            "atcCode": "B01AC06",
+            "dosageForm": "Viên nén bao phim tan trong ruột",
+            "commonDosage": "1 viên/ngày (phòng ngừa tim mạch)",
+            "bhyt": true
+        },
+        {
+            "id": "VN-011",
+            "brandName": "Glucophage 850mg",
+            "genericName": "Metformin",
+            "substances": [
+                {
+                    "name": "metformin",
+                    "rxnorm": "6809",
+                    "strength": "850mg"
+                }
+            ],
+            "pharmacoGroup": "Thuốc hạ đường huyết nhóm Biguanide",
+            "atcCode": "A10BA02",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên x 2-3 lần/ngày, uống cùng bữa ăn",
+            "bhyt": true,
+            "manufacturer": "Merck"
+        },
+        {
+            "id": "VN-012",
+            "brandName": "Diamicron MR 60mg",
+            "genericName": "Gliclazide",
+            "substances": [
+                {
+                    "name": "gliclazide",
+                    "rxnorm": "25789",
+                    "strength": "60mg"
+                }
+            ],
+            "pharmacoGroup": "Thuốc hạ đường huyết nhóm Sulfonylurea",
+            "atcCode": "A10BB09",
+            "dosageForm": "Viên nén phóng thích chậm",
+            "commonDosage": "1 viên/ngày, uống buổi sáng cùng bữa ăn",
+            "bhyt": true,
+            "manufacturer": "Servier"
+        },
+        {
+            "id": "VN-013",
+            "brandName": "Amlor 5mg",
+            "genericName": "Amlodipine",
+            "substances": [
+                {
+                    "name": "amlodipine",
+                    "rxnorm": "17767",
+                    "strength": "5mg"
+                }
+            ],
+            "pharmacoGroup": "Chẹn kênh canxi - Hạ huyết áp",
+            "atcCode": "C08CA01",
+            "dosageForm": "Viên nang",
+            "commonDosage": "1 viên/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-014",
+            "brandName": "Enalapril 10mg",
+            "genericName": "Enalapril",
+            "substances": [
+                {
+                    "name": "enalapril",
+                    "rxnorm": "4053",
+                    "strength": "10mg"
+                }
+            ],
+            "pharmacoGroup": "ACE Inhibitor - Hạ huyết áp",
+            "atcCode": "C09AA02",
+            "dosageForm": "Viên nén",
+            "commonDosage": "1 viên x 1-2 lần/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-015",
+            "brandName": "Lisinopril 10mg",
+            "genericName": "Lisinopril",
+            "substances": [
+                {
+                    "name": "lisinopril",
+                    "rxnorm": "29046",
+                    "strength": "10mg"
+                }
+            ],
+            "pharmacoGroup": "ACE Inhibitor - Hạ huyết áp",
+            "atcCode": "C09AA03",
+            "dosageForm": "Viên nén",
+            "commonDosage": "1 viên/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-016",
+            "brandName": "Losartan 50mg",
+            "genericName": "Losartan",
+            "substances": [
+                {
+                    "name": "losartan",
+                    "rxnorm": "52175",
+                    "strength": "50mg"
+                }
+            ],
+            "pharmacoGroup": "ARB - Hạ huyết áp",
+            "atcCode": "C09CA01",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-017",
+            "brandName": "Lipitor 20mg",
+            "genericName": "Atorvastatin",
+            "substances": [
+                {
+                    "name": "atorvastatin",
+                    "rxnorm": "83367",
+                    "strength": "20mg"
+                }
+            ],
+            "pharmacoGroup": "Statin - Hạ lipid máu",
+            "atcCode": "C10AA05",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên/ngày, uống buổi tối",
+            "bhyt": true,
+            "manufacturer": "Pfizer"
+        },
+        {
+            "id": "VN-018",
+            "brandName": "Zocor 20mg",
+            "genericName": "Simvastatin",
+            "substances": [
+                {
+                    "name": "simvastatin",
+                    "rxnorm": "36567",
+                    "strength": "20mg"
+                }
+            ],
+            "pharmacoGroup": "Statin - Hạ lipid máu",
+            "atcCode": "C10AA01",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên/ngày, uống buổi tối",
+            "bhyt": true,
+            "manufacturer": "MSD"
+        },
+        {
+            "id": "VN-019",
+            "brandName": "Plavix 75mg",
+            "genericName": "Clopidogrel",
+            "substances": [
+                {
+                    "name": "clopidogrel",
+                    "rxnorm": "32968",
+                    "strength": "75mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng kết tập tiểu cầu",
+            "atcCode": "B01AC04",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên/ngày",
+            "bhyt": true,
+            "manufacturer": "Sanofi"
+        },
+        {
+            "id": "VN-020",
+            "brandName": "Coumadin 2mg",
+            "genericName": "Warfarin",
+            "substances": [
+                {
+                    "name": "warfarin",
+                    "rxnorm": "11289",
+                    "strength": "2mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng đông đường uống",
+            "atcCode": "B01AA03",
+            "dosageForm": "Viên nén",
+            "commonDosage": "Liều cá thể hóa theo INR (thường 2-5mg/ngày)",
+            "bhyt": true
+        },
+        {
+            "id": "VN-021",
+            "brandName": "Omeprazole 20mg",
+            "genericName": "Omeprazole",
+            "substances": [
+                {
+                    "name": "omeprazole",
+                    "rxnorm": "7646",
+                    "strength": "20mg"
+                }
+            ],
+            "pharmacoGroup": "Ức chế bơm proton (PPI)",
+            "atcCode": "A02BC01",
+            "dosageForm": "Viên nang",
+            "commonDosage": "1 viên/ngày, uống trước ăn sáng 30 phút",
+            "bhyt": true
+        },
+        {
+            "id": "VN-022",
+            "brandName": "Pantoprazole 40mg",
+            "genericName": "Pantoprazole",
+            "substances": [
+                {
+                    "name": "pantoprazole",
+                    "rxnorm": "40790",
+                    "strength": "40mg"
+                }
+            ],
+            "pharmacoGroup": "Ức chế bơm proton (PPI)",
+            "atcCode": "A02BC02",
+            "dosageForm": "Viên nén bao phim tan trong ruột",
+            "commonDosage": "1 viên/ngày, uống trước ăn",
+            "bhyt": true
+        },
+        {
+            "id": "VN-023",
+            "brandName": "Prednisolone 5mg",
+            "genericName": "Prednisolone",
+            "substances": [
+                {
+                    "name": "prednisolone",
+                    "rxnorm": "8638",
+                    "strength": "5mg"
+                }
+            ],
+            "pharmacoGroup": "Corticosteroid",
+            "atcCode": "H02AB06",
+            "dosageForm": "Viên nén",
+            "commonDosage": "Liều tùy bệnh lý, giảm liều từ từ khi ngưng",
+            "bhyt": true
+        },
+        {
+            "id": "VN-024",
+            "brandName": "Medrol 16mg",
+            "genericName": "Methylprednisolone",
+            "substances": [
+                {
+                    "name": "methylprednisolone",
+                    "rxnorm": "6902",
+                    "strength": "16mg"
+                }
+            ],
+            "pharmacoGroup": "Corticosteroid",
+            "atcCode": "H02AB04",
+            "dosageForm": "Viên nén",
+            "commonDosage": "Liều tùy bệnh lý",
+            "bhyt": true,
+            "manufacturer": "Pfizer"
+        },
+        {
+            "id": "VN-025",
+            "brandName": "Amlodipin/Valsartan 5/80mg",
+            "genericName": "Amlodipine + Valsartan",
+            "substances": [
+                {
+                    "name": "amlodipine",
+                    "rxnorm": "17767",
+                    "strength": "5mg"
+                },
+                {
+                    "name": "valsartan",
+                    "rxnorm": "69749",
+                    "strength": "80mg"
+                }
+            ],
+            "pharmacoGroup": "Phối hợp hạ huyết áp (CCB + ARB)",
+            "atcCode": "C09DB01",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-026",
+            "brandName": "Zinnat 500mg",
+            "genericName": "Cefuroxime axetil",
+            "substances": [
+                {
+                    "name": "cefuroxime",
+                    "rxnorm": "2193",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Cephalosporin thế hệ 2",
+            "atcCode": "J01DC02",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên x 2 lần/ngày, uống sau ăn",
+            "bhyt": true,
+            "manufacturer": "GSK"
+        },
+        {
+            "id": "VN-027",
+            "brandName": "Klacid 500mg",
+            "genericName": "Clarithromycin",
+            "substances": [
+                {
+                    "name": "clarithromycin",
+                    "rxnorm": "21212",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Macrolide",
+            "atcCode": "J01FA09",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "1 viên x 2 lần/ngày",
+            "bhyt": true,
+            "manufacturer": "Abbott"
+        },
+        {
+            "id": "VN-028",
+            "brandName": "Azithromycin 500mg",
+            "genericName": "Azithromycin",
+            "substances": [
+                {
+                    "name": "azithromycin",
+                    "rxnorm": "18631",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Macrolide",
+            "atcCode": "J01FA10",
+            "dosageForm": "Viên nén bao phim",
+            "commonDosage": "500mg ngày 1, sau đó 250mg/ngày x 4 ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-029",
+            "brandName": "Penicillin V 1.000.000 IU",
+            "genericName": "Phenoxymethylpenicillin",
+            "substances": [
+                {
+                    "name": "penicillin v",
+                    "rxnorm": "7980",
+                    "strength": "1.000.000 IU"
+                }
+            ],
+            "pharmacoGroup": "Kháng sinh Penicillin",
+            "atcCode": "J01CE02",
+            "dosageForm": "Viên nén",
+            "commonDosage": "1 viên x 3-4 lần/ngày",
+            "bhyt": true
+        },
+        {
+            "id": "VN-030",
+            "brandName": "Naproxen 500mg",
+            "genericName": "Naproxen",
+            "substances": [
+                {
+                    "name": "naproxen",
+                    "rxnorm": "7052",
+                    "strength": "500mg"
+                }
+            ],
+            "pharmacoGroup": "NSAID - Kháng viêm không steroid",
+            "atcCode": "M01AE02",
+            "dosageForm": "Viên nén",
+            "commonDosage": "250-500mg x 2 lần/ngày",
+            "bhyt": true
+        }
+    ]
+}

@@ -1,0 +1,34 @@
+{
+    "name": "@xclaw/kp-icd10-drug-interactions",
+    "version": "1.0.0",
+    "description": "ICD-10 mã bệnh → chống chỉ định thuốc + tra cứu tương tác thuốc-thuốc. Dữ liệu dựa trên WHO ICD-10 và RxNorm.",
+    "author": "xClaw Team",
+    "type": "knowledge-pack",
+    "domain": "healthcare",
+    "standard": "ICD-10 / RxNorm",
+    "locale": "vi-VN",
+    "entry": "",
+    "dataSources": [
+        {
+            "id": "drug-interactions",
+            "label": "Tương tác thuốc-thuốc",
+            "file": "data/drug-interactions.json",
+            "kind": "drug-interactions",
+            "description": "Danh sách các cặp thuốc tương tác nguy hiểm kèm mô tả và mức độ nghiêm trọng"
+        },
+        {
+            "id": "icd10-contraindications",
+            "label": "Chống chỉ định theo ICD-10",
+            "file": "data/icd10-contraindications.json",
+            "kind": "icd10-contraindications",
+            "description": "Mapping mã ICD-10 → danh sách thuốc chống chỉ định kèm lý do"
+        },
+        {
+            "id": "cross-reactivity",
+            "label": "Nhóm dị ứng chéo",
+            "file": "data/cross-reactivity.json",
+            "kind": "cross-reactivity",
+            "description": "Nhóm hoạt chất có phản ứng dị ứng chéo (beta-lactam, NSAID, sulfonamide, ACE inhibitor...)"
+        }
+    ]
+}

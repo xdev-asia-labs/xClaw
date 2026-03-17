@@ -1,12 +1,12 @@
 // ============================================================
-// AutoX Server - Launches the Gateway control plane
+// xClaw Server - Launches the Gateway control plane
 // This is a thin entry point that configures and starts Gateway
 // ============================================================
 
-import { Agent } from '@autox/core';
-import { Gateway } from '@autox/gateway';
-import { programmingSkill, healthcareSkill, modelManagementSkill, getRAGService } from '@autox/skills';
-import type { AgentConfig } from '@autox/shared';
+import { Agent } from '@xclaw/core';
+import { Gateway } from '@xclaw/gateway';
+import { programmingSkill, healthcareSkill, modelManagementSkill, getRAGService } from '@xclaw/skills';
+import type { AgentConfig } from '@xclaw/shared';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -17,11 +17,21 @@ const GATEWAY_HOST = process.env.GATEWAY_HOST ?? '127.0.0.1';
 // ─── Init Agent ─────────────────────────────────────────────
 
 const agentConfig: AgentConfig = {
-  id: 'autox-main',
-  name: process.env.AGENT_NAME ?? 'AutoX',
+  id: 'xclaw-main',
+  name: process.env.AGENT_NAME ?? 'xClaw',
   persona: process.env.AGENT_PERSONA ?? 'A helpful AI assistant specialized in programming and healthcare.',
   systemPrompt: process.env.AGENT_SYSTEM_PROMPT ??
-    `You are AutoX, an intelligent AI agent. You have access to programming tools (shell, files, git, testing) and healthcare tools (symptom analysis, medication management, health metrics). Use tools when appropriate to help the user. Always be helpful, accurate, and safety-conscious.`,
+    `You are xClaw, an intelligent AI agent with many tools available. IMPORTANT: You MUST use tools (function calls) to perform actions. Do NOT write code yourself - instead call the appropriate tool.
+
+Available tool categories:
+- Programming: shell_exec, file_read, file_write, git_status, etc.
+- Healthcare: symptom_analyze, medication_check_interaction, health_metrics_log, etc.
+- Charts/Reports: generate_chart (create charts/graphs), generate_report (statistics), export_chat_pdf (export to PDF)
+- Data evaluation: evaluate_learning_data (review learning data quality)
+- Knowledge: kb_search, kb_add_document, etc.
+- Models: model_list, model_switch, ollama_list, etc.
+
+When a user asks for a chart, statistics, report, or data evaluation, ALWAYS call the corresponding tool. Never generate code as a response when a tool can do the job.`,
   llm: {
     provider: (process.env.LLM_PROVIDER as 'openai' | 'anthropic' | 'ollama') ?? 'openai',
     model: process.env.LLM_MODEL ?? 'gpt-4o',
@@ -55,8 +65,8 @@ async function initSkills() {
   await agent.skills.activate('programming');
   await agent.skills.activate('healthcare');
   await agent.skills.activate('model-management', {
-    pgConnectionString: process.env.PG_CONNECTION_STRING ?? 'postgresql://autox:autox_secret@localhost:5432/autox',
-    mongoConnectionString: process.env.MONGO_CONNECTION_STRING ?? 'mongodb://autox:autox_secret@localhost:27017/autox?authSource=admin',
+    pgConnectionString: process.env.PG_CONNECTION_STRING ?? 'postgresql://xclaw:xclaw_secret@localhost:5432/xclaw',
+    mongoConnectionString: process.env.MONGO_CONNECTION_STRING ?? 'mongodb://xclaw:xclaw_secret@localhost:27017/xclaw?authSource=admin',
     encryptionKey: process.env.ENCRYPTION_KEY ?? '',
     ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
   });
@@ -65,6 +75,7 @@ async function initSkills() {
   const ragSvc = getRAGService();
   if (ragSvc) {
     agent.setRAGContextProvider((query) => ragSvc.buildContext(query));
+    agent.setRAGDetailedProvider((query) => ragSvc.buildContextDetailed(query));
   }
 
   console.log('Skills activated:', agent.skills.listActive().map(s => s.name).join(', '));
@@ -84,7 +95,7 @@ async function start() {
   // Optional: Register channel plugins from environment
   if (process.env.TELEGRAM_BOT_TOKEN) {
     // @ts-ignore — optional channel package, not yet implemented
-    const { TelegramChannel } = await import('@autox/channel-telegram');
+    const { TelegramChannel } = await import('@xclaw/channel-telegram');
     await gateway.channels.register(new TelegramChannel(), {
       botToken: process.env.TELEGRAM_BOT_TOKEN,
     });
@@ -93,7 +104,7 @@ async function start() {
 
   if (process.env.DISCORD_BOT_TOKEN) {
     // @ts-ignore — optional channel package, not yet implemented
-    const { DiscordChannel } = await import('@autox/channel-discord');
+    const { DiscordChannel } = await import('@xclaw/channel-discord');
     await gateway.channels.register(new DiscordChannel(), {
       botToken: process.env.DISCORD_BOT_TOKEN,
     });

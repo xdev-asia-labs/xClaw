@@ -1,4 +1,4 @@
-# AutoX - AI Agent Platform
+# xClaw - AI Agent Platform
 
 <p align="center">
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
@@ -13,7 +13,7 @@
 
 ```
                     ┌──────────────────────────────────────┐
-                    │           AutoX Gateway              │
+                    │           xClaw Gateway              │
                     │     ws://127.0.0.1:18789/ws          │
                     │   (WebSocket Control Plane)           │
                     ├──────────────────────────────────────┤
@@ -25,7 +25,7 @@
               │               │                │               │
         ┌─────┴─────┐  ┌─────┴─────┐  ┌──────┴──────┐  ┌────┴────┐
         │  Web UI   │  │ Telegram  │  │  Discord    │  │  CLI    │
-        │ :3000     │  │ grammY    │  │ discord.js  │  │ autox   │
+        │ :3000     │  │ grammY    │  │ discord.js  │  │ xclaw   │
         └───────────┘  └───────────┘  └─────────────┘  └─────────┘
 ```
 
@@ -33,8 +33,8 @@
 
 - **Gateway Architecture** — WebSocket control plane (like OpenClaw) with session management, heartbeat, and event broadcasting
 - **Multi-Channel** — Telegram (grammY), Discord (discord.js), Web UI, REST API — connect your agent everywhere
-- **CLI Interface** — `autox gateway`, `autox chat`, `autox skills`, `autox doctor`
-- **Plugin System** — npm-distributable plugins with `autox.plugin.json` manifests
+- **CLI Interface** — `xclaw gateway`, `xclaw chat`, `xclaw skills`, `xclaw doctor`
+- **Plugin System** — npm-distributable plugins with `xclaw.plugin.json` manifests
 - **Multi-LLM Support** — OpenAI, Anthropic Claude, Ollama (local)
 - **Drag & Drop Workflow Builder** — React Flow canvas with 16 node types
 - **AI Chat Interface** — Tool-calling agent loop (max 10 iterations)
@@ -55,7 +55,7 @@
 ## Project Structure
 
 ```
-autox/
+xclaw/
 ├── packages/
 │   ├── shared/              # Type definitions (Gateway, Channel, Plugin types)
 │   ├── core/                # Agent engine, LLM router, memory, workflow, plugins
@@ -64,13 +64,13 @@ autox/
 │   │   ├── memory/          # Vector memory with cosine similarity
 │   │   ├── tools/           # Tool registry with approval system
 │   │   ├── skills/          # Skill manager
-│   │   ├── plugins/         # Plugin loader (autox.plugin.json)
+│   │   ├── plugins/         # Plugin loader (xclaw.plugin.json)
 │   │   └── workflow/        # Workflow engine (BFS execution)
 │   ├── gateway/             # WebSocket control plane
 │   │   ├── gateway.ts       # Gateway server (WS + REST)
 │   │   ├── session-manager.ts
 │   │   └── channel-manager.ts
-│   ├── cli/                 # CLI interface (autox command)
+│   ├── cli/                 # CLI interface (xclaw command)
 │   │   └── commands/        # gateway, chat, skills, doctor
 │   ├── channels/
 │   │   ├── telegram/        # Telegram bot (grammY)
@@ -96,8 +96,8 @@ autox/
 ### Installation
 
 ```bash
-git clone https://github.com/tdduydev/AutoX.git
-cd AutoX
+git clone https://github.com/tdduydev/xClaw.git
+cd xClaw
 npm install
 cp .env.example .env
 # Edit .env with your LLM API key
@@ -147,11 +147,11 @@ docker compose up -d
 
 ## Plugin System
 
-Create plugins distributed as npm packages with `autox.plugin.json`:
+Create plugins distributed as npm packages with `xclaw.plugin.json`:
 
 ```json
 {
-  "name": "@autox/channel-telegram",
+  "name": "@xclaw/channel-telegram",
   "version": "0.1.0",
   "description": "Telegram channel plugin",
   "type": "channel",
@@ -203,7 +203,7 @@ Plugin types: `skill`, `channel`, `integration`, `theme`.
 - [x] CLI interface
 - [x] Telegram channel plugin
 - [x] Discord channel plugin
-- [x] Plugin manifest system (autox.plugin.json)
+- [x] Plugin manifest system (xclaw.plugin.json)
 - [ ] Skill marketplace
 - [ ] WhatsApp / Slack / Signal channels
 - [ ] Streaming chat responses

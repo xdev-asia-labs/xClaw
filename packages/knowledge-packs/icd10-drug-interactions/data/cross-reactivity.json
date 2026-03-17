@@ -1,0 +1,173 @@
+{
+    "_meta": {
+        "description": "Nhóm hoạt chất dị ứng chéo (cross-reactivity groups). Nếu dị ứng với 1 chất trong nhóm → cảnh báo cho tất cả chất cùng nhóm.",
+        "standard": "Clinical pharmacology consensus",
+        "version": "2025-Q4"
+    },
+    "groups": [
+        {
+            "id": "CRG-001",
+            "name": "Beta-lactam (Penicillins)",
+            "description": "Nhóm kháng sinh beta-lactam có vòng thiazolidine. Dị ứng chéo 5-10% với cephalosporin.",
+            "members": [
+                "penicillin",
+                "penicillin v",
+                "penicillin g",
+                "amoxicillin",
+                "ampicillin",
+                "piperacillin",
+                "clavulanate",
+                "oxacillin",
+                "nafcillin"
+            ],
+            "relatedGroups": [
+                "CRG-002"
+            ],
+            "crossReactivityRate": "high (>10%)"
+        },
+        {
+            "id": "CRG-002",
+            "name": "Cephalosporins",
+            "description": "Nhóm kháng sinh cephalosporin. Dị ứng chéo ~2% với penicillin (thế hệ 3-4 thấp hơn).",
+            "members": [
+                "cefazolin",
+                "cephalexin",
+                "cefuroxime",
+                "cefaclor",
+                "ceftriaxone",
+                "cefotaxime",
+                "cefepime",
+                "ceftazidime"
+            ],
+            "relatedGroups": [
+                "CRG-001"
+            ],
+            "crossReactivityRate": "moderate (2-5%)"
+        },
+        {
+            "id": "CRG-003",
+            "name": "NSAIDs (COX inhibitors)",
+            "description": "Nhóm kháng viêm không steroid. Dị ứng chéo thường gặp, đặc biệt trong phản ứng giả dị ứng (pseudoallergic).",
+            "members": [
+                "aspirin",
+                "ibuprofen",
+                "naproxen",
+                "diclofenac",
+                "ketorolac",
+                "piroxicam",
+                "meloxicam",
+                "indomethacin",
+                "celecoxib"
+            ],
+            "relatedGroups": [],
+            "crossReactivityRate": "high (>10%)",
+            "notes": "Celecoxib (COX-2 selective) có dị ứng chéo thấp hơn, có thể thay thế thận trọng"
+        },
+        {
+            "id": "CRG-004",
+            "name": "Sulfonamides (kháng sinh)",
+            "description": "Nhóm sulfonamide kháng khuẩn. Dị ứng chéo giữa các sulfonamide kháng sinh, KHÔNG nhất thiết chéo với các sulfonamide khác (furosemide, thiazide).",
+            "members": [
+                "sulfamethoxazole",
+                "sulfasalazine",
+                "sulfadiazine",
+                "sulfisoxazole"
+            ],
+            "relatedGroups": [],
+            "crossReactivityRate": "moderate",
+            "notes": "Furosemide, thiazide, celecoxib chứa gốc sulfonyl nhưng dị ứng chéo hiếm (<2%)"
+        },
+        {
+            "id": "CRG-005",
+            "name": "ACE Inhibitors",
+            "description": "Nhóm ức chế men chuyển. Phù mạch (angioedema) có thể xảy ra với bất kỳ ACE inhibitor nào → chuyển sang ARB.",
+            "members": [
+                "enalapril",
+                "lisinopril",
+                "captopril",
+                "ramipril",
+                "benazepril",
+                "perindopril",
+                "fosinopril",
+                "quinapril"
+            ],
+            "relatedGroups": [],
+            "crossReactivityRate": "high",
+            "notes": "ARB (losartan, valsartan) có dị ứng chéo < 3%, có thể thay thế thận trọng"
+        },
+        {
+            "id": "CRG-006",
+            "name": "Fluoroquinolones",
+            "description": "Nhóm kháng sinh fluoroquinolone. Dị ứng chéo giữa các thành viên trong nhóm.",
+            "members": [
+                "ciprofloxacin",
+                "levofloxacin",
+                "moxifloxacin",
+                "ofloxacin",
+                "norfloxacin"
+            ],
+            "relatedGroups": [],
+            "crossReactivityRate": "moderate"
+        },
+        {
+            "id": "CRG-007",
+            "name": "Opioids (phenanthrene)",
+            "description": "Nhóm opioid có cấu trúc phenanthrene. Dị ứng chéo giữa morphine, codeine, hydromorphone.",
+            "members": [
+                "morphine",
+                "codeine",
+                "hydromorphone",
+                "oxycodone",
+                "hydrocodone"
+            ],
+            "relatedGroups": [
+                "CRG-008"
+            ],
+            "crossReactivityRate": "moderate",
+            "notes": "Fentanyl (phenylpiperidine) thường an toàn khi dị ứng nhóm phenanthrene"
+        },
+        {
+            "id": "CRG-008",
+            "name": "Opioids (phenylpiperidine)",
+            "description": "Nhóm opioid phenylpiperidine — ít dị ứng chéo với phenanthrene.",
+            "members": [
+                "fentanyl",
+                "meperidine",
+                "tramadol"
+            ],
+            "relatedGroups": [
+                "CRG-007"
+            ],
+            "crossReactivityRate": "low"
+        },
+        {
+            "id": "CRG-009",
+            "name": "Local Anesthetics (amide)",
+            "description": "Thuốc tê nhóm amide. Dị ứng thật hiếm nhưng nếu xảy ra, chéo giữa các amide.",
+            "members": [
+                "lidocaine",
+                "bupivacaine",
+                "ropivacaine",
+                "mepivacaine",
+                "articaine"
+            ],
+            "relatedGroups": [
+                "CRG-010"
+            ],
+            "crossReactivityRate": "low"
+        },
+        {
+            "id": "CRG-010",
+            "name": "Local Anesthetics (ester)",
+            "description": "Thuốc tê nhóm ester (chuyển hóa thành PABA). Dị ứng thường do PABA, KHÔNG chéo với nhóm amide.",
+            "members": [
+                "procaine",
+                "benzocaine",
+                "tetracaine",
+                "chloroprocaine"
+            ],
+            "relatedGroups": [],
+            "crossReactivityRate": "moderate"
+        }
+    ]
+}

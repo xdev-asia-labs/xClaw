@@ -1,4 +1,4 @@
-import type { SkillPlugin, SkillContext } from '@autox/core';
+import type { SkillPlugin, SkillContext } from '@xclaw/core';
 import type { Pool } from 'pg';
 import type { MongoClient, Db } from 'mongodb';
 import { modelManagementManifest } from './manifest.js';

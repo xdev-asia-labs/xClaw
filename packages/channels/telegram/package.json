@@ -1,5 +1,5 @@
 {
-    "name": "@autox/channel-telegram",
+    "name": "@xclaw/channel-telegram",
     "version": "0.1.0",
     "private": true,
     "type": "module",
@@ -16,7 +16,7 @@
         "dev": "tsc --watch"
     },
     "dependencies": {
-        "@autox/shared": "*",
+        "@xclaw/shared": "*",
         "grammy": "^1.30.0"
     },
     "devDependencies": {

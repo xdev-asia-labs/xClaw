@@ -20,7 +20,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { useWorkflowStore, type WFNode, type WFEdge } from '../../stores';
+import { useWorkflowStore, type WFNode, type WFEdge } from '@/stores';
 import { WorkflowNode } from './WorkflowNode';
 import { NodePalette } from './NodePalette';
 import { NodePropertiesPanel } from './NodePropertiesPanel';
@@ -78,7 +78,7 @@ function Canvas() {
         (event: React.DragEvent) => {
             event.preventDefault();
 
-            const raw = event.dataTransfer.getData('application/autox-node');
+            const raw = event.dataTransfer.getData('application/xclaw-node');
             if (!raw) return;
 
             let nodeConfig: NodeTypeConfig;

@@ -1,11 +1,11 @@
 // ============================================================
-// CLI: autox skills - Manage agent skills
+// CLI: xclaw skills - Manage agent skills
 // ============================================================
 
 import { Command } from 'commander';
 
 export const skillsCommand = new Command('skills')
-  .description('Manage AutoX skills/plugins');
+  .description('Manage xClaw skills/plugins');
 
 skillsCommand
   .command('list')

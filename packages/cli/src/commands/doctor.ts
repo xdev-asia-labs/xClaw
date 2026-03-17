@@ -1,14 +1,14 @@
 // ============================================================
-// CLI: autox doctor - Diagnose system health
+// CLI: xclaw doctor - Diagnose system health
 // ============================================================
 
 import { Command } from 'commander';
 
 export const doctorCommand = new Command('doctor')
-  .description('Check AutoX system health and configuration')
+  .description('Check xClaw system health and configuration')
   .option('--url <url>', 'Gateway REST URL', 'http://127.0.0.1:18789')
   .action(async (opts) => {
-    console.log('\nAutoX Doctor\n');
+    console.log('\nxClaw Doctor\n');
     console.log('Checking system health...\n');
 
     // Check Node.js version
@@ -30,7 +30,7 @@ export const doctorCommand = new Command('doctor')
       const data = await res.json() as { status: string; sessions: number; channels: string[] };
       console.log(`  ✓ Gateway: ${data.status} (${data.sessions} sessions, channels: ${data.channels?.join(', ') || 'none'})`);
     } catch {
-      console.log('  ✗ Gateway: not reachable (start with: autox gateway)');
+      console.log('  ✗ Gateway: not reachable (start with: xclaw gateway)');
     }
 
     // Check skills

@@ -1,8 +1,8 @@
 # Software Requirements Specification (SRS)
-## AutoX Model Management Skill
+## xClaw Model Management Skill
 **Version:** 3.0.0  
 **Date:** 2026-03-16  
-**Author:** AutoX Team  
+**Author:** xClaw Team  
 **Status:** Draft  
 
 ---
@@ -10,7 +10,7 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-Tài liệu này mô tả đầy đủ các yêu cầu phần mềm cho **Model Management Skill** trong hệ thống AutoX AI Agent Platform. Skill này cho phép người dùng quản lý nhiều LLM models (Ollama, OpenAI, Anthropic, Google...) từ một giao diện thống nhất, được thiết kế theo đúng kiến trúc Skill Plugin Pattern của AutoX.
+Tài liệu này mô tả đầy đủ các yêu cầu phần mềm cho **Model Management Skill** trong hệ thống xClaw AI Agent Platform. Skill này cho phép người dùng quản lý nhiều LLM models (Ollama, OpenAI, Anthropic, Google...) từ một giao diện thống nhất, được thiết kế theo đúng kiến trúc Skill Plugin Pattern của xClaw.
 
 ### 1.2 Scope
 Model Management Skill bao gồm:
@@ -35,7 +35,7 @@ Model Management Skill bao gồm:
 | Active Model | Model đang được sử dụng cho chat session hiện tại |
 | Model Registry | Danh sách models có sẵn từ provider (vd: Ollama library) |
 | Benchmark | Đánh giá hiệu năng model (speed, quality, tool calling) |
-| Skill | Plugin module trong AutoX với manifest + tools + lifecycle |
+| Skill | Plugin module trong xClaw với manifest + tools + lifecycle |
 | MCP | Model Context Protocol — chuẩn kết nối AI models với external tools/data |
 | MCP Server | Process cung cấp tools/resources cho AI qua MCP protocol |
 | MCP Domain | Chuyên đề/lĩnh vực chuyên biệt của MCP server (Code, Web, Data...) |
@@ -49,9 +49,9 @@ Model Management Skill bao gồm:
 | MongoDB | NoSQL document database cho unstructured data |
 
 ### 1.4 References
-- AutoX Architecture Document (docs/architecture.md)
-- AutoX Skill Development Guide (docs/skill-development.md)
-- AutoX API Reference (docs/api-reference.md)
+- xClaw Architecture Document (docs/architecture.md)
+- xClaw Skill Development Guide (docs/skill-development.md)
+- xClaw API Reference (docs/api-reference.md)
 - [PostgreSQL 18 Release Notes](https://www.postgresql.org/docs/18/release-18.html)
 - [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
 - [MCP Specification](https://spec.modelcontextprotocol.io/) — Model Context Protocol standard
@@ -61,7 +61,7 @@ Model Management Skill bao gồm:
 
 ### 1.5 PostgreSQL 18 Key Features Used
 
-| Feature | Usage in AutoX |
+| Feature | Usage in xClaw |
 |---|---|
 | `uuidv7()` | Time-sortable UUIDs cho model profiles, usage records |
 | Async I/O subsystem | Better performance cho batch usage queries |
@@ -79,7 +79,7 @@ Model Management Skill bao gồm:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                         AutoX Platform                            │
+│                         xClaw Platform                            │
 │                                                                    │
 │  ┌──────────┐  ┌──────────┐  ┌─────────────────────────────────┐ │
 │  │ Web UI   │  │ Gateway  │  │   Model Management Skill         │ │
@@ -124,7 +124,7 @@ Model Management Skill bao gồm:
 
 ### 2.4 Skill Architecture — Model Management as SkillPlugin
 
-Model Management được thiết kế theo đúng pattern SkillPlugin của AutoX:
+Model Management được thiết kế theo đúng pattern SkillPlugin của xClaw:
 
 ```typescript
 // Model Management = SkillPlugin
@@ -134,7 +134,7 @@ const modelManagementSkill: SkillPlugin = {
     name: 'Model Management',
     version: '2.0.0',
     description: 'Manage LLM models, providers, benchmarks, and usage',
-    author: 'AutoX',
+    author: 'xClaw',
     category: 'productivity',
     tags: ['llm', 'model', 'ollama', 'benchmark', 'provider'],
     
@@ -156,9 +156,9 @@ const modelManagementSkill: SkillPlugin = {
     
     config: [
       { key: 'pgConnectionString', label: 'PostgreSQL URL', type: 'string', required: true,
-        default: 'postgresql://autox:autox@localhost:5432/autox' },
+        default: 'postgresql://xclaw:xclaw@localhost:5432/xclaw' },
       { key: 'mongoConnectionString', label: 'MongoDB URL', type: 'string', required: true,
-        default: 'mongodb://localhost:27017/autox' },
+        default: 'mongodb://localhost:27017/xclaw' },
       { key: 'ollamaBaseUrl', label: 'Ollama Base URL', type: 'string', 
         default: 'http://localhost:11434' },
       { key: 'encryptionKey', label: 'API Key Encryption Key', type: 'secret' },
@@ -416,7 +416,7 @@ const modelManagementSkill: SkillPlugin = {
 
 ### 3.9 MCP Server Management (theo chuyên đề)
 
-MCP (Model Context Protocol) servers cung cấp external tools cho Agent theo từng chuyên đề/lĩnh vực. AutoX quản lý MCP servers như "domain tool packs" — mỗi server chuyên 1 lĩnh vực.
+MCP (Model Context Protocol) servers cung cấp external tools cho Agent theo từng chuyên đề/lĩnh vực. xClaw quản lý MCP servers như "domain tool packs" — mỗi server chuyên 1 lĩnh vực.
 
 #### 3.9.1 MCP Domain Categories
 
@@ -530,7 +530,7 @@ RAG (Retrieval-Augmented Generation) cho phép Agent truy vấn knowledge base �
 
 ```
 Knowledge Base
-├── 📁 Collection: "AutoX Documentation"
+├── 📁 Collection: "xClaw Documentation"
 │   ├── 📄 Document: architecture.md (source: file)
 │   │   ├── 🧩 Chunk 1: "## Gateway Architecture..." + embedding[384]
 │   │   ├── 🧩 Chunk 2: "## Skill System..." + embedding[384]

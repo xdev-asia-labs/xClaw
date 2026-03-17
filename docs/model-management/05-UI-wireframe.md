@@ -1,5 +1,5 @@
 # UI Wireframe & Design
-## AutoX Model Management — Web Interface
+## xClaw Model Management — Web Interface
 **Version:** 3.0.0  
 **Date:** 2026-03-16
 
@@ -8,7 +8,7 @@
 ## 1. Navigation Structure
 
 ```
-AutoX Web UI (React 19 + Vite 6 + Tailwind)
+xClaw Web UI (React 19 + Vite 6 + Tailwind)
 ├── 🏠 Dashboard (existing)
 ├── 💬 Chat (existing)
 ├── 🤖 Models ← NEW TAB
@@ -453,10 +453,10 @@ AutoX Web UI (React 19 + Vite 6 + Tailwind)
 │  Vector Index: ● Ready                                                │
 │                                                                       │
 │  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │ 📁 AutoX Documentation                                         │ │
+│  │ 📁 xClaw Documentation                                         │ │
 │  │    15 documents │ 342 chunks │ 2.4 MB                          │ │
 │  │    Embedding: nomic-embed-text │ Chunk: 512 tokens, recursive  │ │
-│  │    Tags: documentation, autox                                   │ │
+│  │    Tags: documentation, xclaw                                   │ │
 │  │    Updated: 2 hours ago                                         │ │
 │  │                                                                 │ │
 │  │    [Open] [📤 Add Document] [🔍 Search] [···]                 │ │
@@ -491,7 +491,7 @@ AutoX Web UI (React 19 + Vite 6 + Tailwind)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  📁 AutoX Documentation                  [📤 Add Document] [⚙ Edit] │
+│  📁 xClaw Documentation                  [📤 Add Document] [⚙ Edit] │
 │  ← Back to Collections                                               │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                       │
@@ -502,7 +502,7 @@ AutoX Web UI (React 19 + Vite 6 + Tailwind)
 │  │ README.md         │ file   │ 4 KB   │    8   │ ✅ Ready│ [👁][🗑]│ │
 │  │ API-Guide.pdf     │ file   │ 250 KB │   52   │ ✅ Ready│ [👁][🗑]│ │
 │  │ Architecture.md   │ file   │ 12 KB  │   24   │ ✅ Ready│ [👁][🗑]│ │
-│  │ autox.dev/docs    │ url    │ 80 KB  │   45   │ ✅ Ready│ [👁][🗑]│ │
+│  │ xclaw.dev/docs    │ url    │ 80 KB  │   45   │ ✅ Ready│ [👁][🗑]│ │
 │  │ CHANGELOG.md      │ file   │ 8 KB   │   16   │ ✅ Ready│ [👁][🗑]│ │
 │  │ Setup-Guide.md    │ file   │ 6 KB   │   12   │ 🔄 Proc│ ──────  │ │
 │  │ ...               │        │        │        │         │         │ │
@@ -518,7 +518,7 @@ AutoX Web UI (React 19 + Vite 6 + Tailwind)
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  📤 Add Document to "AutoX Documentation"                   [✕]  │
+│  📤 Add Document to "xClaw Documentation"                   [✕]  │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                   │
 │  Source: (●) File Upload  ( ) Paste Text  ( ) URL                │
@@ -550,16 +550,16 @@ AutoX Web UI (React 19 + Vite 6 + Tailwind)
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │  👁 README.md — 8 Chunks                                    [Close] │
-│  Collection: AutoX Documentation                                     │
+│  Collection: xClaw Documentation                                     │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                       │
 │  Original: 4,096 bytes │ Parsed: Markdown → Plain text               │
 │  Chunks: 8 │ Strategy: recursive │ Max: 512 tokens │ Overlap: 50    │
 │                                                                       │
 │  ┌── Chunk 1 / 8 ── 487 tokens ── score: — ─────────────────────┐  │
-│  │ # AutoX                                                        │  │
+│  │ # xClaw                                                        │  │
 │  │                                                                │  │
-│  │ AutoX is an AI Agent platform that enables building,           │  │
+│  │ xClaw is an AI Agent platform that enables building,           │  │
 │  │ deploying, and managing AI agents with tool calling            │  │
 │  │ capabilities. It uses a gateway architecture with...           │  │
 │  └────────────────────────────────────────────────────────────────┘  │
@@ -590,20 +590,20 @@ AutoX Web UI (React 19 + Vite 6 + Tailwind)
 │  🔍 Knowledge Search                                                 │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                       │
-│  Search: [How does AutoX handle tool calling?________] [🔍 Search]  │
+│  Search: [How does xClaw handle tool calling?________] [🔍 Search]  │
 │                                                                       │
-│  Collections: [✅ All] [☐ AutoX Docs only] [☐ TS Best Practices]    │
+│  Collections: [✅ All] [☐ xClaw Docs only] [☐ TS Best Practices]    │
 │  Top K: [5 ▼]  │  Min Score: [0.70___]                               │
 │                                                                       │
 │  ─── Results (3 found in 45ms) ──────────────────────────────────  │
 │                                                                       │
-│  ┌── Score: 0.89 ── AutoX Documentation / README.md ─────────────┐  │
-│  │ AutoX uses tool calling via SkillContext.toolRegistry. Each     │  │
+│  ┌── Score: 0.89 ── xClaw Documentation / README.md ─────────────┐  │
+│  │ xClaw uses tool calling via SkillContext.toolRegistry. Each     │  │
 │  │ skill registers tools with defineSkill(), and the Agent LLM    │  │
 │  │ can invoke them through the standard tool_calls mechanism...   │  │
 │  └────────────────────────────────────────────────────────────────┘  │
 │                                                                       │
-│  ┌── Score: 0.82 ── AutoX Documentation / Architecture.md ───────┐  │
+│  ┌── Score: 0.82 ── xClaw Documentation / Architecture.md ───────┐  │
 │  │ The SkillManager loads skills and their tools into the         │  │
 │  │ ToolRegistry. Agent.buildMessages() includes tool definitions  │  │
 │  │ in the LLM request. When LLM returns tool_calls, the Agent... │  │

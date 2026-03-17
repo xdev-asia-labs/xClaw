@@ -2,7 +2,7 @@
 // Tool Registry & Executor - Sandbox for running tools safely
 // ============================================================
 
-import type { ToolDefinition, ToolCall, ToolResult } from '@autox/shared';
+import type { ToolDefinition, ToolCall, ToolResult } from '@xclaw/shared';
 import { EventBus } from '../agent/event-bus.js';
 
 export type ToolExecutor = (args: Record<string, unknown>) => Promise<unknown>;
@@ -32,6 +32,43 @@ export class ToolRegistry {
 
   getAllDefinitions(): ToolDefinition[] {
     return [...this.tools.values()].map(t => t.definition);
+  }
+
+  /**
+   * Get a filtered subset of tool definitions relevant to a user message.
+   * Scores tools by keyword matching against their name, description, and category.
+   * Always includes core tools (memory_save, memory_search) and returns up to `limit` tools.
+   */
+  getRelevantDefinitions(message: string, limit = 16): ToolDefinition[] {
+    const all = this.getAllDefinitions();
+    if (all.length <= limit) return all;
+
+    const lower = message.toLowerCase();
+    const scored = all.map(tool => {
+      let score = 0;
+      const name = tool.name.toLowerCase();
+      const desc = (tool.description || '').toLowerCase();
+      const cat = (tool.category || '').toLowerCase();
+
+      // Exact tool name mentioned
+      if (lower.includes(name)) score += 100;
+      // Category mentioned
+      if (cat && lower.includes(cat)) score += 30;
+      // Word overlap between message and description
+      const words = lower.split(/\W+/).filter(w => w.length > 2);
+      for (const w of words) {
+        if (name.includes(w)) score += 10;
+        if (desc.includes(w)) score += 3;
+      }
+      // Core tools always included
+      if (['memory_save', 'memory_search', 'generate_report', 'generate_chart', 'export_chat_pdf'].includes(tool.name)) {
+        score += 5;
+      }
+      return { tool, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, limit).map(s => s.tool);
   }
 
   getByCategory(category: string): ToolDefinition[] {

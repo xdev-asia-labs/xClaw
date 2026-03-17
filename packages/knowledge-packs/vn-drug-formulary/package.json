@@ -1,0 +1,15 @@
+{
+    "name": "@xclaw/kp-vn-drug-formulary",
+    "version": "1.0.0",
+    "description": "xClaw Knowledge Pack: Vietnamese Drug Formulary - tên biệt dược VN → hoạt chất + nhóm dược lý",
+    "private": true,
+    "type": "module",
+    "keywords": [
+        "xclaw",
+        "knowledge-pack",
+        "vn-drug",
+        "formulary",
+        "healthcare",
+        "vietnam"
+    ]
+}

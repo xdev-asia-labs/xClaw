@@ -2,7 +2,7 @@
 // Session Manager - Manages active gateway sessions
 // ============================================================
 
-import type { GatewaySession, ChatPlatform } from '@autox/shared';
+import type { GatewaySession, ChatPlatform } from '@xclaw/shared';
 
 export class SessionManager {
   private sessions: Map<string, GatewaySession> = new Map();

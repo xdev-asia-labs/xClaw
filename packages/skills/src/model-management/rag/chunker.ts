@@ -24,8 +24,8 @@ export function chunkText(
 }
 
 function estimateTokens(text: string): number {
-  // Rough estimate: ~4 chars per token
-  return Math.ceil(text.length / 4);
+  // Conservative estimate: ~3 chars per token (better for Vietnamese + markdown)
+  return Math.ceil(text.length / 3);
 }
 
 function chunkRecursive(text: string, maxTokens: number, overlap: number): ChunkResult[] {
@@ -38,42 +38,70 @@ function splitRecursively(text: string, separators: string[], maxTokens: number,
     return [{ content: text, index: 0, tokenCount: estimateTokens(text), startOffset: 0, endOffset: text.length }];
   }
 
-  const sep = separators.find(s => text.includes(s)) ?? separators[separators.length - 1];
+  const sepIdx = separators.findIndex(s => text.includes(s));
+  if (sepIdx === -1) {
+    // No separator can split further — return as single chunk
+    return [{ content: text, index: 0, tokenCount: estimateTokens(text), startOffset: 0, endOffset: text.length }];
+  }
+
+  const sep = separators[sepIdx];
+  const finerSeps = separators.slice(sepIdx + 1);
   const parts = text.split(sep);
-  const chunks: ChunkResult[] = [];
+
+  // Merge small parts together, recursively split oversized parts
+  const rawChunks: string[] = [];
   let current = '';
-  let offset = 0;
 
   for (const part of parts) {
+    if (!part && !current) continue;
     const candidate = current ? current + sep + part : part;
-    if (estimateTokens(candidate) > maxTokens && current) {
-      const startOffset = offset;
-      const endOffset = startOffset + current.length;
-      chunks.push({
-        content: current,
-        index: chunks.length,
-        tokenCount: estimateTokens(current),
-        startOffset,
-        endOffset,
-      });
-      // Apply overlap
-      const overlapChars = overlap * 4;
-      const overlapStart = Math.max(0, current.length - overlapChars);
-      current = current.slice(overlapStart) + sep + part;
-      offset = endOffset - (current.length - sep.length - part.length);
-    } else {
+
+    if (estimateTokens(candidate) <= maxTokens) {
       current = candidate;
+    } else if (current) {
+      // Flush current (may itself be oversized if a single part was too big)
+      if (estimateTokens(current) > maxTokens && finerSeps.length > 0) {
+        const sub = splitRecursively(current, finerSeps, maxTokens, overlap);
+        for (const s of sub) rawChunks.push(s.content);
+      } else {
+        rawChunks.push(current);
+      }
+      current = part;
+    } else {
+      // Single part exceeds maxTokens — split with finer separators
+      if (finerSeps.length > 0) {
+        const sub = splitRecursively(part, finerSeps, maxTokens, overlap);
+        for (const s of sub) rawChunks.push(s.content);
+      } else {
+        rawChunks.push(part);
+      }
+      current = '';
     }
   }
 
   if (current) {
+    if (estimateTokens(current) > maxTokens && finerSeps.length > 0) {
+      const sub = splitRecursively(current, finerSeps, maxTokens, overlap);
+      for (const s of sub) rawChunks.push(s.content);
+    } else {
+      rawChunks.push(current);
+    }
+  }
+
+  // Convert to ChunkResult with sequential offsets
+  const chunks: ChunkResult[] = [];
+  let offset = 0;
+  for (const content of rawChunks) {
+    const idx = text.indexOf(content, offset);
+    const startOffset = idx >= 0 ? idx : offset;
     chunks.push({
-      content: current,
+      content,
       index: chunks.length,
-      tokenCount: estimateTokens(current),
-      startOffset: offset,
-      endOffset: offset + current.length,
+      tokenCount: estimateTokens(content),
+      startOffset,
+      endOffset: startOffset + content.length,
     });
+    offset = startOffset + content.length;
   }
 
   return chunks;

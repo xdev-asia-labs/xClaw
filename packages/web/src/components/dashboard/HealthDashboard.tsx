@@ -3,7 +3,7 @@
 // ============================================================
 
 import React, { useEffect, useState } from 'react';
-import { api } from '../../utils/api';
+import { api } from '@/utils/api';
 import {
     Activity, HeartPulse, Pill, Calendar, TrendingUp,
     AlertTriangle, RefreshCw,
@@ -40,13 +40,21 @@ export function HealthDashboard() {
     useEffect(() => { fetchData(); }, []);
 
     const cards = [
-        { icon: HeartPulse, label: 'Heart Rate', color: 'text-red-400', bg: 'bg-red-500/10' },
-        { icon: Activity, label: 'Blood Pressure', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-        { icon: TrendingUp, label: 'Blood Sugar', color: 'text-amber-400', bg: 'bg-amber-500/10' },
-        { icon: Pill, label: 'Medications', color: 'text-green-400', bg: 'bg-green-500/10' },
-        { icon: Calendar, label: 'Appointments', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-        { icon: AlertTriangle, label: 'Alerts', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+        { icon: HeartPulse, label: 'Heart Rate', color: 'text-red-400', bg: 'bg-red-500/10', type: 'heart_rate', unit: 'bpm' },
+        { icon: Activity, label: 'Blood Pressure', color: 'text-blue-400', bg: 'bg-blue-500/10', type: 'blood_pressure', unit: 'mmHg' },
+        { icon: TrendingUp, label: 'Blood Sugar', color: 'text-amber-400', bg: 'bg-amber-500/10', type: 'blood_sugar', unit: 'mg/dL' },
+        { icon: Pill, label: 'Medications', color: 'text-green-400', bg: 'bg-green-500/10', type: 'medication', unit: '' },
+        { icon: Calendar, label: 'Appointments', color: 'text-purple-400', bg: 'bg-purple-500/10', type: 'appointment', unit: '' },
+        { icon: AlertTriangle, label: 'Alerts', color: 'text-orange-400', bg: 'bg-orange-500/10', type: 'alert', unit: '' },
     ];
+
+    const getCardValue = (type: string, unit: string): string => {
+        const matched = metrics.filter(m => m.type === type);
+        if (matched.length === 0) return '--';
+        if (type === 'medication' || type === 'appointment' || type === 'alert') return String(matched.length);
+        const latest = matched[matched.length - 1];
+        return `${latest.value}${unit ? ' ' + unit : ''}`;
+    };
 
     return (
         <div className="flex-1 overflow-y-auto p-6">
@@ -78,7 +86,7 @@ export function HealthDashboard() {
                         >
                             <card.icon size={24} className={card.color} />
                             <p className="text-xs text-slate-400 mt-2">{card.label}</p>
-                            <p className="text-lg font-bold text-white mt-0.5">--</p>
+                            <p className="text-lg font-bold text-white mt-0.5">{getCardValue(card.type, card.unit)}</p>
                         </div>
                     ))}
                 </div>

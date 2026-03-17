@@ -1,8 +1,8 @@
 {
-    "name": "@autox/channel-telegram",
+    "name": "@xclaw/channel-telegram",
     "version": "0.1.0",
-    "description": "Telegram channel plugin for AutoX",
-    "author": "AutoX",
+    "description": "Telegram channel plugin for xClaw",
+    "author": "xClaw",
     "type": "channel",
     "entry": "dist/index.js",
     "platforms": [

@@ -2,7 +2,7 @@
 // EventBus - Internal pub/sub for decoupled communication
 // ============================================================
 
-import type { AgentEvent, EventHandler } from '@autox/shared';
+import type { AgentEvent, EventHandler } from '@xclaw/shared';
 
 export class EventBus {
   private handlers: Map<string, Set<EventHandler>> = new Map();

@@ -1,14 +1,15 @@
 {
-    "name": "autox",
+    "name": "xclaw",
     "version": "0.2.0",
     "private": true,
-    "description": "AutoX - AI Agent Platform with Gateway architecture, drag-and-drop workflow builder, and multi-channel support",
+    "description": "xClaw - AI Agent Platform with Gateway architecture, drag-and-drop workflow builder, and multi-channel support",
     "workspaces": [
         "packages/shared",
         "packages/core",
         "packages/skills",
         "packages/gateway",
         "packages/channels/*",
+        "packages/knowledge-packs/*",
         "packages/cli",
         "packages/server",
         "packages/web"
