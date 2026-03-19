@@ -1,0 +1,56 @@
+name: docs · Publish npm
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/package.json"
+      - ".github/workflows/docs-publish-npm.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine package version
+        id: pkg
+        run: |
+          echo "name=$(node -p \"require('./docs/package.json').name\")" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p \"require('./docs/package.json').version\")" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if npm view "${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }}" --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "Version ${{ steps.pkg.outputs.version }} already exists on npmjs, skipping."
+          else
+            npm publish --workspace docs --access public --registry https://registry.npmjs.org
+          fi
+
+      - name: Publish to GitHub npm registry
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if npm view "${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }}" --registry https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "Version ${{ steps.pkg.outputs.version }} already exists on GitHub npm registry, skipping."
+          else
+            npm publish --workspace docs --access public --registry https://npm.pkg.github.com
+          fi

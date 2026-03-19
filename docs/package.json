@@ -1,7 +1,17 @@
 {
-  "name": "docs",
+  "name": "@tdduydev/xclaw-docs",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
+  "description": "xClaw documentation source package",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tdduydev/xClaw.git"
+  },
+  "license": "MIT",
+  "author": "tdduydev",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
