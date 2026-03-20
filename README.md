@@ -47,10 +47,15 @@ xClaw is a TypeScript monorepo platform for building and deploying AI agents acr
 ### 1. Clone & configure
 
 ```bash
-git clone https://github.com/xdev-asia/xClaw.git
+git clone --recurse-submodules https://github.com/xdev-asia/xClaw.git
 cd xClaw
 cp .env.example .env   # edit with your API keys if needed
 ```
+
+> If you already cloned without `--recurse-submodules`, run:
+> ```bash
+> git submodule update --init --recursive
+> ```
 
 ### 2. Start with Docker Compose
 
@@ -149,6 +154,8 @@ xClaw/
 │   └── channels/        # Channel plugins
 │       ├── telegram/    # Telegram bot
 │       └── discord/     # Discord bot
+├── xclaw-plugins/       # [submodule] Official plugins (ShirtGen, Healthcare)
+├── his-mini/            # [submodule] HIS-Mini demo integration app
 ├── data/
 │   └── knowledge-packs/ # Data-only plugin packages (drug DB, ICD-10, etc.)
 ├── docs/                # Documentation site (Fumadocs + Next.js)
@@ -156,6 +163,13 @@ xClaw/
 ├── Dockerfile
 └── package.json
 ```
+
+### Git Submodules
+
+| Submodule | Path | Repository | Description |
+|-----------|------|------------|-------------|
+| **xclaw-plugins** | `xclaw-plugins/` | [xdev-asia-labs/xclaw-plugins](https://github.com/xdev-asia-labs/xclaw-plugins) | Official plugin packages (ShirtGen.AI, Healthcare) |
+| **his-mini** | `his-mini/` | [xdev-asia-labs/xclaw-demo-integration-app](https://github.com/xdev-asia-labs/xclaw-demo-integration-app) | HIS-Mini demo — Hospital Information System integration app |
 
 ## Features
 
@@ -412,6 +426,19 @@ Each package declares its dependencies via TypeScript project references. Build 
 
 ```
 shared → db → core → integrations → domains → ml → skills → skill-hub → gateway → server
+```
+
+### Working with Submodules
+
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/xdev-asia/xClaw.git
+
+# Update submodules to latest
+git submodule update --remote --merge
+
+# Initialize submodules after a plain clone
+git submodule update --init --recursive
 ```
 
 ## License

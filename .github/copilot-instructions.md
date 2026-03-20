@@ -21,6 +21,13 @@ xClaw is a TypeScript monorepo (npm workspaces) for a general-purpose multi-indu
 - `packages/ml` — Machine learning utilities
 - `data/knowledge-packs/*` — Data-only plugin packages
 
+### Git Submodules
+
+- `xclaw-plugins/` — Official plugins (ShirtGen.AI, Healthcare) → [xdev-asia-labs/xclaw-plugins](https://github.com/xdev-asia-labs/xclaw-plugins)
+- `his-mini/` — HIS-Mini demo integration app → [xdev-asia-labs/xclaw-demo-integration-app](https://github.com/xdev-asia-labs/xclaw-demo-integration-app)
+
+Plugins are **not** inside `packages/`. They live in external repos linked as git submodules. Clone with `git clone --recurse-submodules`.
+
 ## Dual-Database Architecture
 
 - **PostgreSQL 18** — Config/structured data via Drizzle ORM (13 tables): tenants, tenantSettings, users, roles, permissions, rolePermissions, userRoles, oauthAccounts, workflows, workflowExecutions, integrationConnections, webhooks, userDomainPreferences

@@ -17,6 +17,8 @@ applyTo: ["docker-compose.yml", "Dockerfile", "packages/server/**"]
 ## Build & Run
 
 ```bash
+git clone --recurse-submodules https://github.com/xdev-asia/xClaw.git
+cd xClaw
 docker compose up --build          # Build and start all
 docker compose logs -f xclaw       # View server logs
 docker compose down                # Stop all
@@ -24,6 +26,7 @@ docker compose down                # Stop all
 
 - **Never** run `npm run build` or `npm test` directly on host
 - Always use Docker Compose for consistency with production environment
+- Clone with `--recurse-submodules` to include plugin and demo submodules
 
 ## Server Startup Sequence
 
@@ -40,3 +43,4 @@ Each step wrapped in try/catch so one failure doesn't crash the server.
 - Multi-stage build: `builder` stage runs `tsc -b` for each package
 - Non-TS assets (SQL migrations) must be explicitly copied: `cp -r src/migrations dist/migrations`
 - Final stage uses slim Node image with only `dist/` and `node_modules/`
+- Plugins are in external submodules — not built as part of the main Dockerfile
