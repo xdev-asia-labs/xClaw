@@ -1,10 +1,20 @@
+import { XClawClient } from '@xclaw-ai/chat-sdk';
+import type { StreamEvent, ConversationSummary, ConversationDetailResponse } from '@xclaw-ai/chat-sdk';
+
 const API_BASE = '';
 
 let authToken: string | null = localStorage.getItem('xclaw_token');
 
+// Shared XClawClient instance
+const xclaw = new XClawClient({ baseUrl: API_BASE, token: authToken ?? undefined });
+
+/** Access the shared XClawClient instance */
+export function getXClawClient() { return xclaw; }
+
 export function setToken(token: string) {
   authToken = token;
   localStorage.setItem('xclaw_token', token);
+  xclaw.setToken(token);
 }
 
 export function clearToken() {
@@ -131,46 +141,59 @@ export async function getHealth() {
   return res.json();
 }
 
-// ─── Chat ───────────────────────────────────────────────────
+// ─── Chat (via @xclaw-ai/chat-sdk) ──────────────────────────
 
 export async function sendChat(message: string, sessionId: string, domainId?: string) {
-  const res = await apiFetch('/api/chat', {
-    method: 'POST',
-    body: JSON.stringify({ message, sessionId, stream: false, domainId }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || 'Chat failed');
-  }
-  return res.json();
+  return xclaw.chat(message, { sessionId, domainId });
 }
 
-export async function* streamChat(message: string, sessionId: string, webSearch = false, domainId?: string) {
-  const res = await apiFetch('/api/chat', {
-    method: 'POST',
-    body: JSON.stringify({ message, sessionId, stream: true, webSearch, domainId }),
-  });
-  if (!res.ok) throw new Error('Stream failed');
+export async function* streamChat(message: string, sessionId: string, webSearch = false, domainId?: string): AsyncGenerator<StreamEvent> {
+  const events: StreamEvent[] = [];
+  let resolve: (() => void) | null = null;
+  let done = false;
 
-  const reader = res.body!.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
+  xclaw.chatStream(message, {
+    onTextDelta: (delta) => {
+      events.push({ type: 'text-delta', delta });
+      resolve?.();
+    },
+    onMeta: (key, data) => {
+      events.push({ type: 'meta', key, data });
+      resolve?.();
+    },
+    onFinish: (usage, finishReason) => {
+      events.push({ type: 'finish', usage, finishReason });
+      done = true;
+      resolve?.();
+    },
+    onError: (error) => {
+      events.push({ type: 'error', error });
+      done = true;
+      resolve?.();
+    },
+    onToolCallStart: (toolCallId, toolName) => {
+      events.push({ type: 'tool-call-start', toolCallId, toolName });
+      resolve?.();
+    },
+    onToolCallArgs: (toolCallId, argsJson) => {
+      events.push({ type: 'tool-call-args', toolCallId, argsJson });
+      resolve?.();
+    },
+    onToolCallEnd: (toolCallId) => {
+      events.push({ type: 'tool-call-end', toolCallId });
+      resolve?.();
+    },
+    onToolResult: (toolCallId, result) => {
+      events.push({ type: 'tool-result', toolCallId, result });
+      resolve?.();
+    },
+  }, { sessionId, webSearch, domainId });
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop()!;
-
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        const data = line.slice(6);
-        if (data === '[DONE]') return;
-        try {
-          yield JSON.parse(data);
-        } catch { /* skip invalid JSON */ }
-      }
+  while (!done || events.length > 0) {
+    if (events.length > 0) {
+      yield events.shift()!;
+    } else if (!done) {
+      await new Promise<void>(r => { resolve = r; });
     }
   }
 }
@@ -194,65 +217,29 @@ export async function submitChatFeedback(
   feedback: 'positive' | 'negative',
   correction?: string,
 ) {
-  const res = await apiFetch('/api/chat/feedback', {
-    method: 'POST',
-    body: JSON.stringify({ originalQuestion, aiAnswer, feedback, correction }),
-  });
-  if (!res.ok) throw new Error('Failed to submit feedback');
-  return res.json();
+  return xclaw.feedback({ originalQuestion, aiAnswer, feedback, correction });
 }
 
-// ─── Conversation History ───────────────────────────────────
+// ─── Conversation History (via @xclaw-ai/chat-sdk) ──────────
 
-export async function getConversations(): Promise<Array<{
-  id: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-  messageCount: number;
-  lastMessage: string;
-}>> {
-  const res = await apiFetch('/api/chat/conversations');
-  if (!res.ok) throw new Error('Failed to fetch conversations');
-  return res.json();
+export async function getConversations(): Promise<ConversationSummary[]> {
+  return xclaw.listSessions();
 }
 
-export async function getConversation(id: string): Promise<{
-  id: string;
-  title: string;
-  messages: Array<{ id: string; role: 'user' | 'assistant'; content: string; timestamp: string }>;
-  createdAt: string;
-  updatedAt: string;
-}> {
-  const res = await apiFetch(`/api/chat/conversations/${encodeURIComponent(id)}`);
-  if (!res.ok) throw new Error('Conversation not found');
-  return res.json();
+export async function getConversation(id: string): Promise<ConversationDetailResponse> {
+  return xclaw.getConversation(id);
 }
 
 export async function renameConversation(id: string, title: string) {
-  const res = await apiFetch(`/api/chat/conversations/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    body: JSON.stringify({ title }),
-  });
-  if (!res.ok) throw new Error('Failed to rename conversation');
-  return res.json();
+  return xclaw.renameSession(id, title);
 }
 
 export async function deleteConversation(id: string) {
-  const res = await apiFetch(`/api/chat/conversations/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) throw new Error('Failed to delete conversation');
-  return res.json();
+  return xclaw.deleteSession(id);
 }
 
 export async function saveChatMessage(sessionId: string, content: string) {
-  const res = await apiFetch('/api/chat/save-message', {
-    method: 'POST',
-    body: JSON.stringify({ sessionId, content }),
-  });
-  if (!res.ok) throw new Error('Failed to save message');
-  return res.json();
+  return xclaw.saveMessage(sessionId, content);
 }
 
 // ─── Image Generation ───────────────────────────────────────
@@ -598,16 +585,8 @@ export async function getModelInfo(name: string) {
 
 // ─── File Attachments ───────────────────────────────────────
 
-export async function uploadChatAttachment(file: File, sessionId: string) {
-  const form = new FormData();
-  form.append('file', file);
-  form.append('sessionId', sessionId);
-  const res = await apiFetch('/api/chat/upload', {
-    method: 'POST',
-    body: form,
-  });
-  if (!res.ok) throw new Error('Upload failed');
-  return res.json();
+export async function uploadChatAttachment(file: File, _sessionId: string) {
+  return xclaw.uploadFile(file, file.name);
 }
 
 // ─── Global Search ──────────────────────────────────────────

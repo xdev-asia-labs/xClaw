@@ -164,7 +164,7 @@ export function ChatPage() {
                             id: m.id,
                             role: m.role,
                             content: m.content,
-                            timestamp: new Date(m.timestamp),
+                            timestamp: new Date(m.createdAt ?? m.timestamp),
                         })));
                     }
                 })
@@ -178,11 +178,11 @@ export function ChatPage() {
         try {
             const conv = await getConversation(convId);
             setSessionId(convId);
-            setMessages(conv.messages.map((m) => ({
+            setMessages(conv.messages.map((m: any) => ({
                 id: m.id,
                 role: m.role,
                 content: m.content,
-                timestamp: new Date(m.timestamp),
+                timestamp: new Date(m.createdAt ?? m.timestamp),
             })));
         } catch { /* ignore */ }
     }, []);

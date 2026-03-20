@@ -1,0 +1,104 @@
+name: chat-sdk · Publish npm
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/chat-sdk/src/**"
+      - "packages/chat-sdk/package.json"
+      - ".github/workflows/chat-sdk-publish.yml"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: false
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine version bump type
+        id: bump
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "type=${{ inputs.bump }}" >> "$GITHUB_OUTPUT"
+          else
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            if echo "$COMMIT_MSG" | grep -qiE '^\s*(feat|feature)(\(.+\))?!:|BREAKING CHANGE'; then
+              echo "type=major" >> "$GITHUB_OUTPUT"
+            elif echo "$COMMIT_MSG" | grep -qiE '^\s*(feat|feature)(\(.+\))?:'; then
+              echo "type=minor" >> "$GITHUB_OUTPUT"
+            else
+              echo "type=patch" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Bump version
+        id: version
+        working-directory: packages/chat-sdk
+        run: |
+          OLD_VERSION=$(node -p "require('./package.json').version")
+          npm version ${{ steps.bump.outputs.type }} --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "old=$OLD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Bumped $OLD_VERSION -> $NEW_VERSION (${{ steps.bump.outputs.type }})"
+
+      - name: Build
+        run: npm run build --workspace packages/chat-sdk
+
+      - name: Check if version exists on npm
+        id: check
+        run: |
+          PKG_NAME=$(node -p "require('./packages/chat-sdk/package.json').name")
+          if npm view "${PKG_NAME}@${{ steps.version.outputs.new }}" --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npmjs.org
+        if: steps.check.outputs.exists == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --workspace packages/chat-sdk --access public --registry https://registry.npmjs.org
+
+      - name: Commit version bump
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          git add packages/chat-sdk/package.json
+          git commit -m "chore(chat-sdk): release v${{ steps.version.outputs.new }} [skip ci]"
+          git tag "chat-sdk-v${{ steps.version.outputs.new }}"
+          git push origin HEAD --tags

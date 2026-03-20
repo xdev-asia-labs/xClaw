@@ -12,6 +12,7 @@
     "dependencies": {
         "@tailwindcss/typography": "^0.5.19",
         "@tailwindcss/vite": "^4.2.1",
+        "@xclaw-ai/chat-sdk": "*",
         "lucide-react": "^0.577.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",

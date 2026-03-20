@@ -1,0 +1,416 @@
+---
+title: Chat SDK
+description: "@xclaw-ai/chat-sdk — React, React Native & Node.js SDK for xClaw AI Agent Platform"
+---
+
+The official SDK for integrating xClaw chat into any JavaScript/TypeScript application. Supports React hooks, React Native, Node.js, and MCP server integration.
+
+```bash
+npm install @xclaw-ai/chat-sdk
+```
+
+## Package Exports
+
+| Import Path | Description |
+|---|---|
+| `@xclaw-ai/chat-sdk` | Core `XClawClient` + all types |
+| `@xclaw-ai/chat-sdk/react` | React hooks (`useChat`, `useSessions`, `XClawProvider`) |
+| `@xclaw-ai/chat-sdk/react-native` | React Native compatibility layer |
+| `@xclaw-ai/chat-sdk/mcp` | MCP server for AI coding assistants |
+
+---
+
+## Quick Start — React
+
+Wrap your app with `XClawProvider`, then use `useChat` in any child component:
+
+```tsx
+import { XClawProvider, useChat } from '@xclaw-ai/chat-sdk/react';
+
+function App() {
+  return (
+    <XClawProvider config={{ baseUrl: 'https://api.xclaw.io', token: 'your-jwt' }}>
+      <Chat />
+    </XClawProvider>
+  );
+}
+
+function Chat() {
+  const { messages, send, isStreaming, cancel } = useChat({
+    domainId: 'customer-service',
+    webSearch: true,
+  });
+
+  return (
+    <div>
+      {messages.map(m => (
+        <div key={m.id} className={m.role}>
+          {m.content}
+          {m.isStreaming && <span className="cursor" />}
+        </div>
+      ))}
+      <input onKeyDown={e => {
+        if (e.key === 'Enter') send(e.currentTarget.value);
+      }} />
+      {isStreaming && <button onClick={cancel}>Stop</button>}
+    </div>
+  );
+}
+```
+
+---
+
+## Quick Start — React Native
+
+```tsx
+import { XClawProvider, useChat, createReactNativeConfig } from '@xclaw-ai/chat-sdk/react-native';
+
+const config = createReactNativeConfig({
+  baseUrl: 'https://api.xclaw.io',
+  token: 'your-jwt',
+});
+
+export default function App() {
+  return (
+    <XClawProvider config={config}>
+      <ChatScreen />
+    </XClawProvider>
+  );
+}
+```
+
+`createReactNativeConfig` automatically applies React Native SSE polyfills and timeout adjustments.
+
+---
+
+## Core Client (No React)
+
+Use `XClawClient` directly in Node.js, Bun, Deno, or any JavaScript runtime:
+
+```typescript
+import { XClawClient } from '@xclaw-ai/chat-sdk';
+
+const client = new XClawClient({
+  baseUrl: 'https://api.xclaw.io',
+  token: 'your-jwt',
+});
+
+// Non-streaming
+const response = await client.chat('Hello!');
+console.log(response.content);
+
+// Streaming
+const { done, cancel } = client.chatStream('Tell me a joke', {
+  onTextDelta: (delta, full) => process.stdout.write(delta),
+  onFinish: (usage) => console.log('\nTokens:', usage.totalTokens),
+});
+await done;
+```
+
+---
+
+## Configuration
+
+```typescript
+interface XClawConfig {
+  /** xClaw server base URL (e.g., "https://api.xclaw.io") */
+  baseUrl: string;
+  /** Authentication token (Bearer) */
+  token?: string;
+  /** Default domain for specialization */
+  defaultDomain?: string;
+  /** Enable web search by default */
+  webSearch?: boolean;
+  /** Request timeout in ms (default: 60000) */
+  timeout?: number;
+  /** Custom fetch implementation (for React Native polyfills) */
+  fetch?: typeof globalThis.fetch;
+  /** Custom headers to include in all requests */
+  headers?: Record<string, string>;
+}
+```
+
+---
+
+## API Reference
+
+### `XClawClient`
+
+#### Authentication
+
+| Method | Description |
+|---|---|
+| `login({ email, password })` | Authenticate and store token automatically |
+| `setToken(token)` | Set JWT token directly |
+| `getToken()` | Get current token |
+
+```typescript
+// Login
+const { token, user } = await client.login({ email: 'admin@xclaw.io', password: '...' });
+
+// Or set token directly
+client.setToken('eyJ...');
+```
+
+#### Chat
+
+| Method | Description |
+|---|---|
+| `chat(message, options?)` | Send message, get full response |
+| `chatStream(message, callbacks?, options?)` | Send message with SSE streaming |
+
+```typescript
+// Non-streaming
+const res = await client.chat('Summarize this', { sessionId: 'abc', domainId: 'finance' });
+console.log(res.content, res.sessionId);
+
+// Streaming
+const handle = client.chatStream('Explain quantum computing', {
+  onTextDelta: (delta, accumulated) => { /* real-time text */ },
+  onToolCallStart: (id, name) => { /* tool invoked */ },
+  onToolResult: (id, result) => { /* tool completed */ },
+  onMeta: (key, data) => { /* RAG context, search results */ },
+  onFinish: (usage, reason) => { /* stream complete */ },
+  onError: (error) => { /* error occurred */ },
+});
+
+// Cancel anytime
+handle.cancel();
+
+// Wait for completion
+const fullText = await handle.done;
+const allEvents = await handle.events;
+```
+
+#### Sessions / Conversations
+
+| Method | Description |
+|---|---|
+| `listSessions()` | List all conversations |
+| `getConversation(sessionId)` | Get conversation with messages |
+| `getMessages(sessionId)` | Get messages only |
+| `renameSession(sessionId, title)` | Rename a conversation |
+| `deleteSession(sessionId)` | Delete a conversation |
+| `saveMessage(sessionId, content)` | Save a completed assistant message |
+
+```typescript
+const conversations = await client.listSessions();
+// Returns: [{ id, title, createdAt, updatedAt, messageCount, lastMessage }]
+
+const conv = await client.getConversation('session-id');
+// Returns: { id, title, messages: ChatMessage[], createdAt, updatedAt }
+
+await client.renameSession('session-id', 'New Title');
+await client.deleteSession('session-id');
+```
+
+#### Attachments & Feedback
+
+| Method | Description |
+|---|---|
+| `uploadFile(file, filename)` | Upload file attachment (returns `{ id, filename, size }`) |
+| `feedback(data)` | Submit correction feedback for self-learning |
+
+```typescript
+// Upload
+const upload = await client.uploadFile(blob, 'report.pdf');
+await client.chat('Analyze this file', { attachmentIds: [upload.id] });
+
+// Feedback
+await client.feedback({
+  originalQuestion: 'What is X?',
+  aiAnswer: 'X is ...',
+  feedback: 'negative',
+  correction: 'Actually, X is ...',
+});
+```
+
+---
+
+### React Hooks
+
+#### `useChat(options?)`
+
+Main hook for chat interactions. Manages messages, streaming state, and tool calls.
+
+```typescript
+const {
+  messages,       // ChatMessage[] — all messages in conversation
+  isStreaming,    // boolean — currently receiving response
+  send,           // (message: string) => void — send a message
+  cancel,         // () => void — abort current stream
+  clear,          // () => void — clear all messages
+  setMessages,    // (messages: ChatMessage[]) => void — replace messages
+  sessionId,      // string — current session ID
+  usage,          // TokenUsage | null — last response token usage
+  error,          // Error | null — last error
+} = useChat({
+  sessionId: 'custom-id',          // optional — auto-generated if omitted
+  domainId: 'healthcare',          // optional — domain specialization
+  webSearch: true,                  // optional — enable web search
+  initialMessages: [],              // optional — pre-populate messages
+  onFinish: (msg) => {},            // optional — complete response callback
+  onError: (err) => {},             // optional — error callback
+  onToolCall: (name, id) => {},     // optional — tool invocation callback
+  onMeta: (key, data) => {},        // optional — meta events (RAG, search)
+});
+```
+
+**ChatMessage Type:**
+
+```typescript
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  createdAt: Date;
+  metadata?: Record<string, unknown>;
+  toolCalls?: ToolCallInfo[];
+  usage?: TokenUsage;
+  isStreaming?: boolean;
+}
+```
+
+#### `useSessions()`
+
+Hook for managing chat sessions/conversations.
+
+```typescript
+const {
+  sessions,         // ConversationSummary[] — all sessions
+  loading,          // boolean — loading state
+  refresh,          // () => Promise<void> — refresh list
+  deleteSession,    // (id: string) => Promise<void>
+  renameSession,    // (id: string, title: string) => Promise<void>
+  getMessages,      // (id: string) => Promise<ChatMessage[]>
+} = useSessions();
+```
+
+#### `XClawProvider`
+
+React context provider. Must wrap any component using `useChat` or `useSessions`.
+
+```tsx
+<XClawProvider config={{
+  baseUrl: 'https://api.xclaw.io',
+  token: authToken,
+  defaultDomain: 'general',
+}}>
+  {children}
+</XClawProvider>
+```
+
+The provider syncs token changes without recreating the client instance.
+
+#### `useXClawClient()`
+
+Access the underlying `XClawClient` instance directly from any child component:
+
+```typescript
+const client = useXClawClient();
+const data = await client.listSessions();
+```
+
+---
+
+### Stream Events
+
+All events dispatched during streaming:
+
+| Event | Fields | Description |
+|---|---|---|
+| `text-delta` | `delta: string` | Incremental text token |
+| `tool-call-start` | `toolCallId, toolName` | Tool invocation begins |
+| `tool-call-args` | `toolCallId, argsJson` | Tool arguments (may arrive in chunks) |
+| `tool-call-end` | `toolCallId` | Tool invocation complete |
+| `tool-result` | `toolCallId, result` | Tool execution result |
+| `meta` | `key, data` | Metadata (RAG context, search results, etc.) |
+| `finish` | `usage, finishReason` | Stream complete with token usage |
+| `error` | `error: string` | Error occurred |
+
+---
+
+## MCP Server
+
+The SDK includes a built-in MCP (Model Context Protocol) server for AI coding assistants like GitHub Copilot, Claude, and Cursor.
+
+### Setup
+
+Add to your MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "xclaw": {
+      "command": "npx",
+      "args": ["@xclaw-ai/chat-sdk", "--base-url", "http://localhost:18789", "--token", "your-jwt"]
+    }
+  }
+}
+```
+
+### Available Tools
+
+| Tool | Description |
+|---|---|
+| `xclaw_chat` | Send a message and get AI response |
+| `xclaw_chat_stream` | Send a message with streaming |
+| `xclaw_list_sessions` | List all chat sessions |
+| `xclaw_get_messages` | Get messages for a session |
+| `xclaw_delete_session` | Delete a session |
+| `xclaw_upload_file` | Upload a file attachment |
+| `xclaw_feedback` | Submit correction feedback |
+
+### Resources
+
+| URI | Description |
+|---|---|
+| `xclaw://sessions` | List of all current sessions |
+
+---
+
+## Error Handling
+
+All SDK methods throw `XClawError` on failure:
+
+```typescript
+import { XClawError } from '@xclaw-ai/chat-sdk';
+
+try {
+  await client.chat('Hello');
+} catch (err) {
+  if (err instanceof XClawError) {
+    console.error(err.status);      // HTTP status code
+    console.error(err.body);        // Raw response body
+    console.error(err.message);     // Human-readable message
+  }
+}
+```
+
+---
+
+## TypeScript Types
+
+All types are fully exported:
+
+```typescript
+import type {
+  XClawConfig,
+  ChatRequest,
+  ChatResponse,
+  ChatMessage,
+  ChatSession,
+  StreamEvent,
+  StreamCallbacks,
+  StreamHandle,
+  TokenUsage,
+  ToolResult,
+  ToolCallInfo,
+  ConversationSummary,
+  ConversationDetailResponse,
+  FeedbackRequest,
+  LoginRequest,
+  LoginResponse,
+  UploadResponse,
+} from '@xclaw-ai/chat-sdk';
+```
