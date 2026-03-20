@@ -89,6 +89,7 @@ jobs:
               done
             fi
           fi
+          CHANGED=$(echo "$CHANGED" | jq -c .)
           echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
           echo "Changed packages: $CHANGED"
 
