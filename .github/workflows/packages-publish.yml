@@ -64,15 +64,30 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.packages }}" ]]; then
             # Manual: use specified packages
             CHANGED=$(echo "${{ inputs.packages }}" | tr ',' '\n' | xargs -I{} echo "{}" | jq -R . | jq -s .)
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual without packages specified: publish all
+            CHANGED="[]"
+            for pkg_dir in $BUILD_ORDER; do
+              CHANGED=$(echo "$CHANGED" | jq --arg d "$pkg_dir" '. + [$d]')
+            done
           else
             # Auto-detect from changed files
             CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD)
+            COMMIT_MSG=$(git log -1 --pretty=%B)
             CHANGED="[]"
-            for pkg_dir in $BUILD_ORDER; do
-              if echo "$CHANGED_FILES" | grep -q "^${pkg_dir}/"; then
+
+            # If BREAKING CHANGE, publish all packages
+            if echo "$COMMIT_MSG" | grep -qiE 'BREAKING CHANGE|publish.all'; then
+              for pkg_dir in $BUILD_ORDER; do
                 CHANGED=$(echo "$CHANGED" | jq --arg d "$pkg_dir" '. + [$d]')
-              fi
-            done
+              done
+            else
+              for pkg_dir in $BUILD_ORDER; do
+                if echo "$CHANGED_FILES" | grep -q "^${pkg_dir}/"; then
+                  CHANGED=$(echo "$CHANGED" | jq --arg d "$pkg_dir" '. + [$d]')
+                fi
+              done
+            fi
           fi
           echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
           echo "Changed packages: $CHANGED"
