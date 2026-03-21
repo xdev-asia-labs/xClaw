@@ -31,6 +31,7 @@
         "cli": "tsx packages/cli/src/index.ts",
         "test": "vitest",
         "lint": "eslint packages/*/src --ext .ts,.tsx",
+        "lock:sync": "npm install --package-lock-only",
         "db:generate": "npm run generate -w packages/db",
         "db:migrate": "npm run migrate -w packages/db",
         "db:studio": "npm run studio -w packages/db"

@@ -194,10 +194,14 @@ jobs:
             echo "PUBLISHED=$PUBLISHED" >> "$GITHUB_ENV"
           fi
 
+      - name: Refresh root lockfile
+        if: env.PUBLISHED != ''
+        run: npm run lock:sync
+
       - name: Commit version bumps & tag
         if: env.PUBLISHED != ''
         run: |
-          git add packages/*/package.json packages/channels/*/package.json
+          git add package-lock.json packages/*/package.json packages/channels/*/package.json
           COMMIT_MSG="chore: release$(echo "$PUBLISHED" | tr ' ' '\n' | sed 's/^/ /')"
           git commit -m "$COMMIT_MSG [skip ci]" || echo "Nothing to commit"
           git push origin HEAD
