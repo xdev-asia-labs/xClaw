@@ -19,7 +19,7 @@
         "@xclaw-ai/shared": "*",
         "@xclaw-ai/db": "*",
         "openai": "^4.80.0",
-        "@anthropic-ai/sdk": "^0.39.0",
+        "@anthropic-ai/sdk": "^0.80.0",
         "zod": "^3.24.0",
         "nanoid": "^5.0.0"
     }

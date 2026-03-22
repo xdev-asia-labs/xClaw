@@ -24,7 +24,7 @@
     },
     "dependencies": {
         "@xclaw-ai/shared": "*",
-        "drizzle-orm": "^0.39.0",
+        "drizzle-orm": "^0.45.1",
         "mongodb": "^7.1.0",
         "postgres": "^3.4.0"
     }
