@@ -1,6 +1,6 @@
 {
     "name": "@xclaw-ai/gateway",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "description": "xClaw gateway — Hono HTTP/WS/SSE server + MCP Server + Auth",
     "type": "module",
     "main": "dist/index.js",

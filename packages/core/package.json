@@ -1,6 +1,6 @@
 {
     "name": "@xclaw-ai/core",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "xClaw core engine — Agent, LLM router, memory, tools, graph, streaming, tracing",
     "type": "module",
     "main": "dist/index.js",
