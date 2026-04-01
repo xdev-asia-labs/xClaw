@@ -1,23 +1,18 @@
-import { randomUUID } from 'node:crypto';
-import { Hono } from 'hono';
-import { streamToSSE, GuardrailPipeline, PromptInjectionDetector, OutputSanitizer, TopicScopeGuard, LLMRateLimiter } from '@xclaw-ai/core';
 import type { AdditionalTool, GuardrailContext } from '@xclaw-ai/core';
-import { ChatRequestSchema } from '@xclaw-ai/shared';
-import type { StreamEvent, Workflow, ToolDefinition, ToolParameter } from '@xclaw-ai/shared';
+import { AgentFileMemory, GuardrailPipeline, LLMRateLimiter, OutputSanitizer, PromptInjectionDetector, streamToSSE, TopicScopeGuard } from '@xclaw-ai/core';
+import { and, eq, estimateCost, getDB, llmLogsCollection, messagesCollection, sessionsCollection, workflows, type MongoMessage, type MongoSession } from '@xclaw-ai/db';
 import type { DomainPack } from '@xclaw-ai/domains';
-import type { GatewayContext } from './gateway.js';
-import { getInstalledDomainIds } from './domains.js';
-import { getLanguageInstruction } from './settings.js';
 import { tavilyWebSearch } from '@xclaw-ai/integrations';
-import { getTenantLanguageInstruction } from './tenant.js';
+import type { StreamEvent, ToolDefinition, ToolParameter, Workflow } from '@xclaw-ai/shared';
+import { ChatRequestSchema } from '@xclaw-ai/shared';
+import { Hono } from 'hono';
+import { randomUUID } from 'node:crypto';
+import { getInstalledDomainIds } from './domains.js';
+import type { GatewayContext } from './gateway.js';
 import { scanPII } from './pii.js';
-import { llmLogsCollection, estimateCost, getDB, workflows, eq, and } from '@xclaw-ai/db';
-import type { MongoLLMLog } from '@xclaw-ai/db';
+import { getLanguageInstruction } from './settings.js';
 import type { TenantSettingsInfo } from './tenant.js';
-import {
-  sessionsCollection, messagesCollection,
-  type MongoSession, type MongoMessage,
-} from '@xclaw-ai/db';
+import { getTenantLanguageInstruction } from './tenant.js';
 
 // ─── AI Security: Guardrails & Rate Limiting ─────────────────
 
@@ -603,6 +598,15 @@ export function createChatRoutes(ctx: GatewayContext) {
     if (langInstruction) {
       fullMessage = `[Language instruction]\n${langInstruction}\n\n${fullMessage}`;
     }
+
+    // Inject agent file memory (MEMORY.md) into message context if available
+    try {
+      const agentMemory = new AgentFileMemory(activeAgent.config.id, 'project');
+      const memFragment = await agentMemory.buildPromptFragment();
+      if (memFragment) {
+        fullMessage = `${memFragment}\n\n${fullMessage}`;
+      }
+    } catch { /* memory load failure is non-fatal */ }
 
     if (stream) {
       const generator = wrapStreamWithMeta(activeAgent, ctx, sid, fullMessage, message, ragContext, enableWebSearch, tSettings, { tenantId, userId }, domainTools.length > 0 ? domainTools : undefined, guardCtx);

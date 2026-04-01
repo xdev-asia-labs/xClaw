@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: xclaw
       POSTGRES_DB: xclaw
     ports:
-      - "5455:5432"
+      - "5456:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +20,7 @@ services:
   mongodb:
     image: mongo:7
     ports:
-      - "27019:27017"
+      - "27020:27017"
     volumes:
       - mongodata:/data/db
     healthcheck:
@@ -33,7 +33,7 @@ services:
   redis:
     image: redis:8-alpine
     ports:
-      - "6385:6379"
+      - "6386:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -71,6 +71,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: unless-stopped
 
   # ─── Web Frontend (Nginx) ─────────────────────────────
   web:

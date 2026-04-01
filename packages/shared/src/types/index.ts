@@ -1288,3 +1288,76 @@ export interface ToolSandboxPolicy {
   /** Filesystem paths this tool needs */
   filesystemPaths?: FilesystemPolicyRule[];
 }
+
+// ─── Agent Task Types (claude-code-inspired lifecycle) ───────
+
+export type AgentTaskType =
+  | 'subagent'   // Spawned subagent working on a subtask
+  | 'shell'      // Shell command execution
+  | 'workflow'   // Workflow execution
+  | 'remote';    // Remote agent via A2A
+
+export type AgentTaskStatus =
+  | 'pending'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+
+export interface AgentTask {
+  id: string;
+  type: AgentTaskType;
+  status: AgentTaskStatus;
+  description: string;
+  parentTaskId?: string;
+  agentId: string;
+  sessionId: string;
+  startedAt: string;
+  completedAt?: string;
+  result?: string;
+  error?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ─── Token Budget / Auto-Compact Types ──────────────────────
+
+export interface TokenBudget {
+  /** Total context window for this model (in tokens) */
+  contextWindow: number;
+  /** Fraction at which auto-compact triggers (default 0.8) */
+  compactThreshold: number;
+  /** Accumulated tokens used across iterations in this session */
+  usedTokens: number;
+}
+
+// ─── File-based Agent Definition (claude-code-inspired) ─────
+
+export type AgentMemoryScope = 'user' | 'project' | 'session';
+
+export interface AgentDefinition {
+  /** Unique agent type name (used as directory name for memory) */
+  agentType: string;
+  description: string;
+  systemPrompt: string;
+  /** Tool names allowed; undefined = all registered tools */
+  tools?: string[];
+  disallowedTools?: string[];
+  /** Override LLM model for this agent */
+  model?: string;
+  maxTurns?: number;
+  memoryScope?: AgentMemoryScope;
+  permissionMode?: 'normal' | 'strict' | 'bubble';
+  /** Source of this definition */
+  source: 'built-in' | 'project' | 'user' | 'api';
+}
+
+// ─── Coordinator Mode ─────────────────────────────────────
+
+export interface CoordinatorConfig {
+  /** Whether coordinator mode is active */
+  enabled: boolean;
+  /** Maximum number of concurrent subagents */
+  maxConcurrentAgents?: number;
+  /** Tool names available to worker agents (undefined = all) */
+  workerTools?: string[];
+}

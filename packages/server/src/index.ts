@@ -4,12 +4,14 @@ import {
     Agent,
     AnthropicAdapter,
     ApprovalManager,
+    CoordinatorAgent,
     DeepSeekAdapter,
     EvalFramework,
     GeminiAdapter,
     GroqAdapter,
     HuggingFaceAdapter,
     ImageGenService,
+    isCoordinatorModeEnabled,
     LangGraphWorkflowEngine,
     LocalEmbeddingProvider,
     MonitoringService,
@@ -18,7 +20,8 @@ import {
     OpenAIAdapter,
     OpenAIEmbeddingProvider,
     PluginManager,
-    RagEngine
+    RagEngine,
+    TaskManager,
 } from '@xclaw-ai/core';
 import type { MongoChannelConnection } from '@xclaw-ai/db';
 import { agentConfigsCollection, channelConnectionsCollection, connectMongo, estimateCost, getMongo, llmLogsCollection, messagesCollection, mongoMonitoringStore, runMigrations, sandboxAuditLogsCollection, seedInitialData, sessionsCollection } from '@xclaw-ai/db';
@@ -816,6 +819,19 @@ async function main() {
   const approvalManager = new ApprovalManager();
   console.log('   Approvals:  HITL approval manager ready (5m expiry)');
 
+  // ─── Coordinator Agent (optional — enabled by XCLAW_COORDINATOR_MODE=1) ──
+  let coordinatorAgent: CoordinatorAgent | undefined;
+  let taskManager: TaskManager | undefined;
+  if (isCoordinatorModeEnabled()) {
+    const result = agentManager.createCoordinator(agentConfig, {
+      enabled: true,
+      maxConcurrentAgents: 5,
+    });
+    coordinatorAgent = result.coordinator;
+    taskManager = result.taskManager;
+    console.log('   Coordinator: multi-agent coordinator mode enabled');
+  }
+
   // Create Hono app
   const app = createGateway({
     agent,
@@ -835,6 +851,8 @@ async function main() {
     multiAgentOrchestrator,
     evalFramework,
     approvalManager,
+    coordinatorAgent,
+    taskManager,
   });
 
   // Start server

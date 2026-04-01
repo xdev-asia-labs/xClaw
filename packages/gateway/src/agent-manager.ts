@@ -1,20 +1,23 @@
-import {
-  Agent,
-  OpenAIAdapter,
-  AnthropicAdapter,
-  OllamaAdapter,
-  DeepSeekAdapter,
-  XAIAdapter,
-  OpenRouterAdapter,
-  PerplexityAdapter,
-  GroqAdapter,
-  MistralAdapter,
-  GeminiAdapter,
-  HuggingFaceAdapter,
-} from '@xclaw-ai/core';
 import type { LLMAdapter } from '@xclaw-ai/core';
-import type { AgentConfig } from '@xclaw-ai/shared';
+import {
+    Agent,
+    AnthropicAdapter,
+    CoordinatorAgent,
+    createInheritingAgentFactory,
+    DeepSeekAdapter,
+    GeminiAdapter,
+    GroqAdapter,
+    HuggingFaceAdapter,
+    MistralAdapter,
+    OllamaAdapter,
+    OpenAIAdapter,
+    OpenRouterAdapter,
+    PerplexityAdapter,
+    TaskManager,
+    XAIAdapter
+} from '@xclaw-ai/core';
 import { agentConfigsCollection, type MongoAgentConfig } from '@xclaw-ai/db';
+import type { AgentConfig, CoordinatorConfig } from '@xclaw-ai/shared';
 
 /**
  * AgentManager — converts MongoAgentConfig → Agent instances with caching.
@@ -205,5 +208,27 @@ export class AgentManager {
   /** Extract model name from an adapter (best-effort) */
   private getAdapterModel(adapter: LLMAdapter): string {
     return (adapter as unknown as Record<string, unknown>).model as string ?? '';
+  }
+
+  /**
+   * Create a CoordinatorAgent that wraps the given base agent config.
+   * The coordinator uses the same LLM but has the spawn_agent tool pre-registered.
+   * Returns both the coordinator and its TaskManager for observability.
+   */
+  createCoordinator(
+    baseConfig: AgentConfig,
+    coordinatorConfig: CoordinatorConfig = { enabled: true },
+  ): { coordinator: CoordinatorAgent; taskManager: TaskManager } {
+    const taskManager = new TaskManager();
+    const agentFactory = createInheritingAgentFactory(this.defaultAgent.tools, coordinatorConfig);
+
+    // Register all shared adapters on the base config's agent instance
+    const coordinatorBase = new Agent(baseConfig);
+    for (const adapter of this.adapters) {
+      coordinatorBase.llm.registerAdapter(adapter);
+    }
+
+    const coordinator = new CoordinatorAgent(baseConfig, coordinatorConfig, agentFactory);
+    return { coordinator, taskManager };
   }
 }

@@ -4,6 +4,7 @@ import type {
     LLMMessage,
     LLMResponse,
     StreamEvent,
+    TokenBudget,
     ToolCall,
     ToolDefinition,
     ToolResult
@@ -11,10 +12,16 @@ import type {
 import { randomUUID } from 'node:crypto';
 import type { ChatOptions } from '../llm/llm-router.js';
 import { LLMRouter } from '../llm/llm-router.js';
+import { ConversationSummarizer } from '../memory/conversation-summarizer.js';
 import { MemoryManager } from '../memory/memory-manager.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { Tracer } from '../tracing/tracer.js';
 import { EventBus } from './event-bus.js';
+
+/** Default context window size when not specified (conservative estimate) */
+const DEFAULT_CONTEXT_WINDOW = 128_000;
+/** Default fraction of context at which auto-compact triggers */
+const DEFAULT_COMPACT_THRESHOLD = 0.8;
 
 /** In-request tool: a tool definition + its handler, passed directly to chat/chatStream */
 export interface AdditionalTool {
@@ -54,6 +61,11 @@ export class Agent {
   readonly tracer: Tracer;
   private sandboxConfig?: AgentSandboxConfig;
   private transferHandler?: TransferHandler;
+  private summarizer: ConversationSummarizer;
+  /** Per-session token accumulator for auto-compact tracking */
+  private sessionTokens = new Map<string, number>();
+  /** Token budget config (defaults to conservative 128k window) */
+  private tokenBudget: TokenBudget;
 
   constructor(config: AgentConfig) {
     this.config = config;
@@ -62,6 +74,44 @@ export class Agent {
     this.memory = new MemoryManager();
     this.tools = new ToolRegistry();
     this.tracer = new Tracer();
+    this.summarizer = new ConversationSummarizer(this.llm);
+    this.tokenBudget = {
+      contextWindow: DEFAULT_CONTEXT_WINDOW,
+      compactThreshold: DEFAULT_COMPACT_THRESHOLD,
+      usedTokens: 0,
+    };
+  }
+
+  /**
+   * Configure the token budget for this agent.
+   * Call this after instantiation when you know the model's context window.
+   */
+  configureTokenBudget(budget: Partial<TokenBudget>): void {
+    this.tokenBudget = { ...this.tokenBudget, ...budget };
+  }
+
+  /**
+   * Check if auto-compact should trigger for a session.
+   * Returns true when accumulated tokens have crossed the threshold.
+   */
+  private shouldCompact(sessionId: string): boolean {
+    const used = this.sessionTokens.get(sessionId) ?? 0;
+    return used / this.tokenBudget.contextWindow >= this.tokenBudget.compactThreshold;
+  }
+
+  /**
+   * Accumulate token usage for a session and emit a compact event if needed.
+   */
+  private trackTokens(sessionId: string, usage: { totalTokens: number }): void {
+    const prev = this.sessionTokens.get(sessionId) ?? 0;
+    this.sessionTokens.set(sessionId, prev + usage.totalTokens);
+  }
+
+  /**
+   * Reset token counter for a session (called after successful compact).
+   */
+  private resetTokens(sessionId: string): void {
+    this.sessionTokens.set(sessionId, 0);
   }
 
   /**
@@ -98,9 +148,22 @@ export class Agent {
       timestamp: new Date().toISOString(),
     });
 
-    // Build messages
-    await this.memory.loadHistory(sessionId, 20);
-    const messages = this.buildMessages(sessionId, userMessage, ragContext, images);
+    // Build messages — auto-compact if token budget exceeded
+    const history = await this.memory.loadHistory(sessionId, 20);
+    let messages: LLMMessage[];
+
+    if (this.shouldCompact(sessionId)) {
+      messages = await this.summarizer.maybeSummarize(sessionId, history);
+      this.resetTokens(sessionId);
+      await this.events.emit({
+        type: 'agent:compact',
+        payload: { sessionId, historyLength: history.length },
+        source: this.config.id,
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      messages = this.buildMessages(sessionId, userMessage, ragContext, images);
+    }
 
     // Merge registered tools + per-request additional tools
     const allToolDefs = [
@@ -115,6 +178,9 @@ export class Agent {
     while (iterations < this.config.maxToolIterations) {
       iterations++;
       response = await this.llm.chat(messages, allToolDefs, llmOptions);
+
+      // Track token usage for auto-compact budget
+      this.trackTokens(sessionId, response.usage);
 
       if (!response.toolCalls?.length) {
         // No tool calls — we have the final answer
@@ -209,7 +275,16 @@ export class Agent {
     });
 
     await this.memory.loadHistory(sessionId, 20);
-    const messages = this.buildMessages(sessionId, userMessage, ragContext, images);
+    const history = this.memory.getHistorySync(sessionId);
+    let messages: LLMMessage[];
+
+    if (this.shouldCompact(sessionId)) {
+      messages = await this.summarizer.maybeSummarize(sessionId, history);
+      this.resetTokens(sessionId);
+      yield { type: 'meta', key: 'compact', data: { historyLength: history.length } };
+    } else {
+      messages = this.buildMessages(sessionId, userMessage, ragContext, images);
+    }
 
     const allToolDefs = [
       ...this.tools.getDefinitions(),
@@ -237,6 +312,8 @@ export class Agent {
         } else if (event.type === 'tool-call-end') {
           yield event;
         } else if (event.type === 'finish') {
+          // Track token usage from finish event
+          this.trackTokens(sessionId, event.usage);
           if (toolCalls.length === 0) {
             // Final response
             await this.memory.addMessage(sessionId, {

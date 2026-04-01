@@ -1,4 +1,4 @@
-import type { Agent, ApprovalManager, EvalFramework, MonitoringService, MultiAgentOrchestrator, OllamaAdapter, PluginManager, RagEngine } from '@xclaw-ai/core';
+import type { Agent, ApprovalManager, CoordinatorAgent, EvalFramework, MonitoringService, MultiAgentOrchestrator, OllamaAdapter, PluginManager, RagEngine, TaskManager } from '@xclaw-ai/core';
 import { eq, getDB } from '@xclaw-ai/db';
 import type { DomainPack } from '@xclaw-ai/domains';
 import type { IntegrationRegistry } from '@xclaw-ai/integrations';
@@ -40,6 +40,7 @@ import { createRetentionRoutes } from './retention.js';
 import { createSandboxRoutes } from './sandbox.js';
 import { createSearchRoutes } from './search.js';
 import { createSettingsRoutes } from './settings.js';
+import { createTaskRoutes } from './tasks.js';
 import { createTenantRoutes, tenantMiddleware } from './tenant.js';
 import { createVoiceRoutes } from './voice.js';
 import { createWidgetRoutes } from './widget.js';
@@ -68,6 +69,8 @@ export interface GatewayContext {
   multiAgentOrchestrator?: MultiAgentOrchestrator;
   evalFramework?: EvalFramework;
   approvalManager?: ApprovalManager;
+  coordinatorAgent?: CoordinatorAgent;
+  taskManager?: TaskManager;
 }
 
 export function createGateway(ctx: GatewayContext) {
@@ -160,6 +163,9 @@ export function createGateway(ctx: GatewayContext) {
   }
   if (ctx.approvalManager) {
     api.route('/approvals', createApprovalRoutes(ctx.approvalManager));
+  }
+  if (ctx.taskManager) {
+    api.route('/tasks', createTaskRoutes(ctx.taskManager));
   }
   app.route('/api', api);
 
